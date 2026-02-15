@@ -1,0 +1,30 @@
+﻿@model Pedidos360.Models.Cliente
+@{
+    ViewData["Title"] = "Eliminar cliente";
+}
+
+<h2>Eliminar cliente</h2>
+
+<div class="alert alert-warning">
+    ¿Está seguro que desea eliminar este cliente?
+</div>
+
+<dl class="row">
+    <dt class="col-sm-3">Nombre</dt>
+    <dd class="col-sm-9">@Model.Nombre</dd>
+
+    <dt class="col-sm-3">Cédula</dt>
+    <dd class="col-sm-9">@Model.Cedula</dd>
+
+    <dt class="col-sm-3">Correo</dt>
+    <dd class="col-sm-9">@Model.Correo</dd>
+
+    <dt class="col-sm-3">Teléfono</dt>
+    <dd class="col-sm-9">@Model.Telefono</dd>
+</dl>
+
+<form asp-action="Delete" method="post">
+    <input type="hidden" asp-for="ClienteId" />
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
