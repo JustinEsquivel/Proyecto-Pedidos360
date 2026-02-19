@@ -7,7 +7,7 @@ using Pedidos360.Models.ViewModels;
 
 namespace Pedidos360.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class ClientesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -17,7 +17,7 @@ namespace Pedidos360.Controllers
             _context = context;
         }
 
-        // GET: Clientes
+        // INDEX
         public async Task<IActionResult> Index(string? nombre, string? cedula, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
@@ -35,6 +35,7 @@ namespace Pedidos360.Controllers
             query = query.OrderBy(c => c.Nombre);
 
             var total = await query.CountAsync();
+
             var items = await query
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -53,7 +54,7 @@ namespace Pedidos360.Controllers
             return View(vm);
         }
 
-        // GET: Clientes/Details/5
+        // DETAILS
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -68,42 +69,60 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
-        // GET: Clientes/Create
-
+        // CREATE
         public IActionResult Create() => View();
 
-        // POST: Clientes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Nombre,Cedula,Correo,Telefono")] Cliente cliente)
         {
-            if (!ModelState.IsValid) return View(cliente);
+            if (!ModelState.IsValid)
+                return AjaxModelStateErrorOrView(cliente);
 
-            // Duplicados (por índices únicos)
             if (await _context.Clientes.AnyAsync(c => c.Cedula == cliente.Cedula))
                 ModelState.AddModelError(nameof(Cliente.Cedula), "Ya existe un cliente con esa cédula.");
 
             if (await _context.Clientes.AnyAsync(c => c.Correo == cliente.Correo))
                 ModelState.AddModelError(nameof(Cliente.Correo), "Ya existe un cliente con ese correo.");
 
-            if (!ModelState.IsValid) return View(cliente);
+            if (await _context.Clientes.AnyAsync(c => c.Telefono == cliente.Telefono))
+                ModelState.AddModelError(nameof(Cliente.Telefono), "Ya existe otro cliente con ese número de teléfono.");
+
+            if (await _context.Clientes.AnyAsync(c => c.Nombre == cliente.Nombre))
+                ModelState.AddModelError(nameof(Cliente.Nombre), "Ya existe otro cliente con ese nombre.");
+
+            
+
+            if (!ModelState.IsValid)
+                return AjaxModelStateErrorOrView(cliente);
 
             _context.Clientes.Add(cliente);
 
             try
             {
                 await _context.SaveChangesAsync();
+
+                if (IsAjaxRequest())
+                {
+                    return Json(new
+                    {
+                        ok = true,
+                        message = "Cliente creado correctamente.",
+                        redirectUrl = Url.Action(nameof(Index))
+                    });
+                }
+
                 TempData["Ok"] = "Cliente creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException)
             {
-                ModelState.AddModelError("", "No se pudo guardar el cliente. Verifique datos duplicados e intente nuevamente.");
-                return View(cliente);
+                ModelState.AddModelError("", "No se pudo guardar el cliente.");
+                return AjaxModelStateErrorOrView(cliente);
             }
         }
 
-        // GET: Clientes/Edit/5
+        // EDIT
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -114,43 +133,62 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
-        // POST: Clientes/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ClienteId,Nombre,Cedula,Correo,Telefono")] Cliente cliente)
         {
             if (id != cliente.ClienteId) return NotFound();
 
-            if (!ModelState.IsValid) return View(cliente);
+            if (!ModelState.IsValid)
+                return AjaxModelStateErrorOrView(cliente);
 
             if (await _context.Clientes.AnyAsync(c => c.ClienteId != id && c.Cedula == cliente.Cedula))
                 ModelState.AddModelError(nameof(Cliente.Cedula), "Ya existe otro cliente con esa cédula.");
 
             if (await _context.Clientes.AnyAsync(c => c.ClienteId != id && c.Correo == cliente.Correo))
                 ModelState.AddModelError(nameof(Cliente.Correo), "Ya existe otro cliente con ese correo.");
+            if (await _context.Clientes.AnyAsync(c => c.ClienteId != id && c.Nombre == cliente.Nombre))
+                ModelState.AddModelError(nameof(Cliente.Nombre), "Ya existe otro cliente con ese nombre.");
 
-            if (!ModelState.IsValid) return View(cliente);
+            if (await _context.Clientes.AnyAsync(c => c.ClienteId != id && c.Telefono == cliente.Telefono))
+                ModelState.AddModelError(nameof(Cliente.Telefono), "Ya existe otro cliente con ese número de teléfono.");
+
+            if (!ModelState.IsValid)
+                return AjaxModelStateErrorOrView(cliente);
 
             try
             {
                 _context.Update(cliente);
                 await _context.SaveChangesAsync();
+
+                if (IsAjaxRequest())
+                {
+                    return Json(new
+                    {
+                        ok = true,
+                        message = "Cliente actualizado correctamente.",
+                        redirectUrl = Url.Action(nameof(Index))
+                    });
+                }
+
                 TempData["Ok"] = "Cliente actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!await _context.Clientes.AnyAsync(e => e.ClienteId == id)) return NotFound();
+                if (!await _context.Clientes.AnyAsync(e => e.ClienteId == id))
+                    return NotFound();
+
                 throw;
             }
             catch (DbUpdateException)
             {
-                ModelState.AddModelError("", "No se pudo actualizar el cliente. Verifique datos duplicados e intente nuevamente.");
-                return View(cliente);
+                ModelState.AddModelError("", "No se pudo actualizar el cliente.");
+                return AjaxModelStateErrorOrView(cliente);
             }
         }
 
-        // GET: Clientes/Delete/5
+        // DELETE
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -164,7 +202,6 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
-        // POST: Clientes/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
@@ -173,6 +210,7 @@ namespace Pedidos360.Controllers
             if (cliente == null) return RedirectToAction(nameof(Index));
 
             bool tienePedidos = await _context.Pedidos.AnyAsync(p => p.ClienteId == id);
+
             if (tienePedidos)
             {
                 TempData["Err"] = "No se puede eliminar: el cliente tiene pedidos asociados.";
@@ -184,6 +222,29 @@ namespace Pedidos360.Controllers
 
             TempData["Ok"] = "Cliente eliminado correctamente.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // Helpers de AJAX
+        private bool IsAjaxRequest()
+        {
+            return Request.Headers["X-Requested-With"] == "XMLHttpRequest";
+        }
+
+        private IActionResult AjaxModelStateErrorOrView(Cliente cliente)
+        {
+            if (IsAjaxRequest())
+            {
+                var errors = ModelState
+                    .Where(ms => ms.Value != null && ms.Value.Errors.Count > 0)
+                    .ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value!.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+
+                return BadRequest(new { ok = false, errors });
+            }
+
+            return View(cliente);
         }
     }
 }

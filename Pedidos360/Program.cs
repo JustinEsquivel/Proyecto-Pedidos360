@@ -29,6 +29,8 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
+await SeedData.EnsureSeedAsync(app.Services);
+
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
@@ -40,11 +42,11 @@ else
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();  // ✅ IMPORTANTE
+app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();  // ✅
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
