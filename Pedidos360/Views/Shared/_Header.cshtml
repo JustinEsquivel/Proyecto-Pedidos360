@@ -36,7 +36,7 @@
                     }
 
                     @* Ventas: catálogo + pedidos *@
-                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Ventas"))
+                    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Ventas") || User.IsInRole("Admin")))
                     {
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Productos</a>
@@ -47,7 +47,7 @@
                     }
 
                     @* Operaciones: inventario + pedidos *@
-                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Operaciones"))
+                    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Operaciones") || User.IsInRole("Admin")))
                     {
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Inventario</a>

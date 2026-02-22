@@ -23,11 +23,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\Imagenes\Productos\" />
+    <None Include="Views\Clientes\Create.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Views\Clientes\Create.cshtml" />
+    <Folder Include="wwwroot\imagenes\productos\" />
   </ItemGroup>
 
 </Project>

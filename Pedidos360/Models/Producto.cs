@@ -29,9 +29,8 @@ namespace Pedidos360.Models
         [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo")]
         public int Stock { get; set; }
 
-        [Required(ErrorMessage = "La imagen es obligatoria")]
-        [StringLength(500)]
-        public string ImagenUrl { get; set; }
+        [Column(TypeName = "nvarchar(max)")]
+        public string? ImagenUrl { get; set; }
 
         [Required]
         public bool Activo { get; set; } = true;
@@ -42,8 +41,8 @@ namespace Pedidos360.Models
 
         // Navegación
         [ForeignKey("CategoriaId")]
-        public virtual Categoria Categoria { get; set; }
+        public virtual Categoria? Categoria { get; set; }
 
-        public virtual ICollection<PedidoDetalle> PedidoDetalles { get; set; }
+        public virtual ICollection<PedidoDetalle>? PedidoDetalles { get; set; }
     }
 }

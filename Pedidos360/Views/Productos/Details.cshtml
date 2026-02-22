@@ -1,0 +1,26 @@
+﻿@model Pedidos360.Models.Producto
+@{
+    ViewData["Title"] = "Detalle producto";
+}
+
+<h2>Detalle de cliente</h2>
+
+<dl class="row">
+    <dt class="col-sm-3">Nombre</dt>
+    <dd class="col-sm-9">@Model.Nombre</dd>
+
+    <dt class="col-sm-3">Precio</dt>
+    <dd class="col-sm-9">@Model.Precio</dd>
+
+    <dt class="col-sm-3">Impuesto</dt>
+    <dd class="col-sm-9">@Model.ImpuestoPorc</dd>
+
+    <dt class="col-sm-3">Categoria</dt>
+    <dd class="col-sm-9">@Model.Categoria.Nombre</dd>
+
+    <dt class="col-sm-3">Stock</dt>
+    <dd class="col-sm-9">@Model.Stock</dd>
+</dl>
+
+<a asp-action="Edit" asp-route-id="@Model.ProductoId" class="btn btn-warning">Editar</a>
+<a asp-action="Index" class="btn btn-secondary">Volver</a>

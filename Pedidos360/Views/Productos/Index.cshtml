@@ -1,0 +1,160 @@
+﻿@model Pedidos360.Models.ViewModels.ProductosIndexVM
+
+@{
+    ViewData["Title"] = "Productos";
+}
+
+<h2>Productos</h2>
+
+@if (TempData["Ok"] != null)
+{
+    <div class="alert alert-success">@TempData["Ok"]</div>
+}
+@if (TempData["Err"] != null)
+{
+    <div class="alert alert-danger">@TempData["Err"]</div>
+}
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <label class="form-label">Nombre</label>
+        <input name="nombre" value="@Model.Nombre" class="form-control" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">Categoría</label>
+        <select name="categoriaId" class="form-select">
+            <option value="">Todas</option>
+            @foreach (var c in ViewBag.Categorias)
+            {
+                <option value="@c.Value" selected="@(Model.CategoriaId?.ToString() == c.Value)">
+                    @c.Text
+                </option>
+            }
+        </select>
+    </div>
+
+
+    <div class="col-md-2">
+        <label class="form-label">Tamaño página</label>
+        <select name="pageSize" class="form-select">
+            @foreach (var s in new[] { 10, 15, 20, 30, 50 })
+            {
+                <option value="@s" selected="@(Model.PageSize == s)">@s</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end gap-2">
+        <button class="btn btn-primary" type="submit">Filtrar</button>
+        <a class="btn btn-secondary" asp-action="Index">Limpiar</a>
+        <a class="btn btn-success" asp-action="Create">Nuevo</a>
+    </div>
+</form>
+
+<table class="table table-striped align-middle">
+    <thead>
+        <tr>
+            <th style="width:80px;">Imagen</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Precio</th>
+            <th>Impuesto %</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th style="width:250px;"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model.Items)
+        {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(p.ImagenUrl))
+                    {
+                        <img src="data:image/png;base64,@p.ImagenUrl"
+                             width="60"
+                             class="rounded border" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">N/A</span>
+                    }
+                </td>
+
+                <td>@p.Nombre</td>
+                <td>@p.Categoria?.Nombre</td>
+                <td>@p.Precio.ToString("C", new System.Globalization.CultureInfo("es-CR"))</td>
+                <td>@p.ImpuestoPorc %</td>
+                <td>
+                    @if (p.Stock <= 5)
+                    {
+                        <span class="badge bg-danger">@p.Stock</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">@p.Stock</span>
+                    }
+                </td>
+                <td>
+                    @if (p.Activo)
+                    {
+                        <span class="badge bg-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger">Inactivo</span>
+                    }
+                </td>
+
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary"
+                       asp-action="Details"
+                       asp-route-id="@p.ProductoId">Detalle</a>
+
+                    <a class="btn btn-sm btn-outline-warning"
+                       asp-action="Edit"
+                       asp-route-id="@p.ProductoId">Editar</a>
+
+                    <a class="btn btn-sm btn-outline-danger"
+                       asp-action="Delete"
+                       asp-route-id="@p.ProductoId">Eliminar</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (Model.TotalPages > 1)
+{
+    <nav>
+        <ul class="pagination">
+            <li class="page-item @(Model.HasPrev ? "" : "disabled")">
+                <a class="page-link"
+                   asp-route-nombre="@Model.Nombre"
+                   asp-route-categoriaId="@Model.CategoriaId"
+                   asp-route-pageSize="@Model.PageSize"
+                   asp-route-page="@(Model.Page - 1)">Anterior</a>
+            </li>
+
+            @for (int p = 1; p <= Model.TotalPages; p++)
+            {
+                <li class="page-item @(p == Model.Page ? "active" : "")">
+                    <a class="page-link"
+                       asp-route-nombre="@Model.Nombre"
+                       asp-route-categoriaId="@Model.CategoriaId"
+                       asp-route-pageSize="@Model.PageSize"
+                       asp-route-page="@p">@p</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.HasNext ? "" : "disabled")">
+                <a class="page-link"
+                   asp-route-nombre="@Model.Nombre"
+                   asp-route-categoriaId="@Model.CategoriaId"
+                   asp-route-pageSize="@Model.PageSize"
+                   asp-route-page="@(Model.Page + 1)">Siguiente</a>
+            </li>
+        </ul>
+    </nav>
+}
