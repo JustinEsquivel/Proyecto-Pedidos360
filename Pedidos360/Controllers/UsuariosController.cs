@@ -167,7 +167,7 @@ public class UsuariosController : Controller
             return View(vm);
         }
 
-        // Actualizar rol (1 rol por usuario en tu diseño)
+        // Actualizar rol 
         var currentRoles = await _userManager.GetRolesAsync(user);
         var current = currentRoles.FirstOrDefault();
 
@@ -203,7 +203,7 @@ public class UsuariosController : Controller
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return RedirectToAction(nameof(Index));
 
-        // Evitar que el Admin se borre a sí mismo
+        // Evita que el Admin se borre a sí mismo
         var currentUserId = _userManager.GetUserId(User);
         if (currentUserId == user.Id)
         {

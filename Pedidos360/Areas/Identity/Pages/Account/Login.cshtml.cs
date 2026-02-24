@@ -65,7 +65,6 @@ namespace Pedidos360.Areas.Identity.Pages.Account
 
             returnUrl ??= Url.Content("~/");
 
-            // Limpia cookies externas
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
 
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();

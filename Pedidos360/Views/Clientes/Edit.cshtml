@@ -118,7 +118,6 @@
                         return;
                     }
 
-                    // Esperamos { ok:false, errors:{...} }
                     const errData = await resp.json();
                     if (errData && errData.errors) {
                         showServerErrors(errData.errors);
