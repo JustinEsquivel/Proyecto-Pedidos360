@@ -13,19 +13,21 @@ namespace Pedidos360.Models
 
         [Required(ErrorMessage = "El nombre del producto es requerido")]
         [StringLength(200, ErrorMessage = "El nombre no puede exceder 200 caracteres")]
+        [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s]+$",
+            ErrorMessage = "El nombre solo puede contener letras, números y espacios")]
         public string Nombre { get; set; }
 
         [Required(ErrorMessage = "El precio es requerido")]
-        [Range(0.01, double.MaxValue, ErrorMessage = "El precio debe ser mayor a 0")]
+        [Range(typeof(decimal), "0.01", "999999999", ErrorMessage = "El precio debe ser mayor a 0")]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Precio { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "El impuesto es requerido")]
         [Range(0, 100, ErrorMessage = "El impuesto debe estar entre 0 y 100%")]
         [Column(TypeName = "decimal(5,2)")]
         public decimal ImpuestoPorc { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "El stock es requerido")]
         [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo")]
         public int Stock { get; set; }
 
@@ -36,7 +38,7 @@ namespace Pedidos360.Models
         public bool Activo { get; set; } = true;
 
         // Foreign Keys
-        [Required]
+        [Required(ErrorMessage = "La categoria es requerida")]
         public int CategoriaId { get; set; }
 
         // Navegación

@@ -12,8 +12,8 @@ using Pedidos360.Data;
 namespace Pedidos360.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260222185215_HacerImagenNullableCorrectamente")]
-    partial class HacerImagenNullableCorrectamente
+    [Migration("20260315164849_InicialCompleta")]
+    partial class InicialCompleta
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

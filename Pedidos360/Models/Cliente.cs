@@ -11,16 +11,22 @@ namespace Pedidos360.Models
         public int ClienteId { get; set; }
 
         [Required(ErrorMessage = "El nombre es requerido")]
-        [StringLength(200, ErrorMessage = "El nombre no puede exceder 200 caracteres")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "El nombre debe tener entre 2 y 100 caracteres")]
+        [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$",
+            ErrorMessage = "El nombre solo puede contener letras y espacios")]
         public string Nombre { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La cédula es requerida")]
         [StringLength(20, ErrorMessage = "La cédula no puede exceder 20 caracteres")]
+        [RegularExpression(@"^[1-7]\d{8}$",
+            ErrorMessage = "La cédula debe tener 9 dígitos y comenzar con un número de provincia válido")]
         public string Cedula { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El correo es requerido")]
-        [EmailAddress(ErrorMessage = "El correo no es válido")]
-        [StringLength(100)]
+        [EmailAddress(ErrorMessage = "Debe ingresar un correo válido")]
+        [StringLength(100, MinimumLength = 5, ErrorMessage = "El correo debe tener entre 5 y 100 caracteres")]
+        [RegularExpression(@"^[^@\s]+@[^@\s]+\.[^@\s]+$",
+            ErrorMessage = "El correo debe tener un formato válido (ejemplo: usuario@dominio.com)")]
         public string Correo { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El teléfono es requerido")]

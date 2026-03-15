@@ -104,8 +104,6 @@ namespace Pedidos360.Controllers
                 ModelState.AddModelError(nameof(Producto.Nombre), "Ya existe otro producto con ese nombre.");
 
 
-            if (!ModelState.IsValid)
-                return AjaxModelStateErrorOrView(producto);
 
             if(imagenFile != null)
             {

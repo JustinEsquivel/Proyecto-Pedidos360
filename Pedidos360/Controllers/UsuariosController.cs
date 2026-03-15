@@ -203,7 +203,7 @@ public class UsuariosController : Controller
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return RedirectToAction(nameof(Index));
 
-        // Evitar que el Admin se borre a sí mismo
+        // Evita que el Admin se borre a sí mismo
         var currentUserId = _userManager.GetUserId(User);
         if (currentUserId == user.Id)
         {
