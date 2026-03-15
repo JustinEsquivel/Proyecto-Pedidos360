@@ -167,7 +167,7 @@ public class UsuariosController : Controller
             return View(vm);
         }
 
-        // Actualizar rol (1 rol por usuario en tu diseño)
+        // Actualizar rol 
         var currentRoles = await _userManager.GetRolesAsync(user);
         var current = currentRoles.FirstOrDefault();
 
