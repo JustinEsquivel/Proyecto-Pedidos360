@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:\\\\Users\\\\justi\\\\OneDrive - Universidad Fidélitas\\\\Documentos Universidad\\\\6 CUATRIMESTRE\\\\Lenguajes de BD\\\\Proyecto-Pedidos360\\\\Pedidos360\" && dotnet build 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\justi\\\\OneDrive - Universidad Fidélitas\\\\Documentos Universidad\\\\6 CUATRIMESTRE\\\\Lenguajes de BD\\\\Proyecto-Pedidos360\\\\Pedidos360\" && dotnet build 2>&1 | tail -20)",
+      "Bash(cd \"C:\\\\Users\\\\justi\\\\OneDrive - Universidad Fidélitas\\\\Documentos Universidad\\\\6 CUATRIMESTRE\\\\Lenguajes de BD\\\\Proyecto-Pedidos360\\\\Pedidos360\" && dotnet build 2>&1 | grep -E \"error|Error|0 Errores|Errores\")",
+      "Bash(cd \"C:\\\\Users\\\\justi\\\\OneDrive - Universidad Fidélitas\\\\Documentos Universidad\\\\6 CUATRIMESTRE\\\\Lenguajes de BD\\\\Proyecto-Pedidos360\\\\Pedidos360\" && dotnet build 2>&1 | grep -E \"^.*error|0 Errores\")"
+    ]
+  }
+}

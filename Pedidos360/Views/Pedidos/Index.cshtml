@@ -1,0 +1,104 @@
+@model List<Pedidos360.Models.Pedido>
+@{
+    ViewData["Title"] = "Pedidos";
+    int page     = ViewBag.Page;
+    int pageSize = ViewBag.PageSize;
+    int total    = ViewBag.Total;
+    int pages    = (int)Math.Ceiling((double)total / pageSize);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Pedidos</h2>
+    @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
+    {
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Nuevo Pedido
+        </a>
+    }
+</div>
+
+@if (TempData["Ok"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Ok"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Err"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Err"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Vendedor</th>
+                <th>Estado</th>
+                <th class="text-end">Subtotal</th>
+                <th class="text-end">Impuestos</th>
+                <th class="text-end">Total</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (!Model.Any())
+            {
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">No hay pedidos registrados.</td>
+                </tr>
+            }
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.PedidoId</td>
+                    <td>@p.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@p.Cliente?.Nombre</td>
+                    <td>@p.Usuario?.NombreCompleto</td>
+                    <td>
+                        <span class="badge @(p.Estado == "Confirmado" ? "bg-success" : "bg-warning text-dark")">
+                            @p.Estado
+                        </span>
+                    </td>
+                    <td class="text-end">₡@p.Subtotal.ToString("N2")</td>
+                    <td class="text-end">₡@p.Impuestos.ToString("N2")</td>
+                    <td class="text-end fw-bold">₡@p.Total.ToString("N2")</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@p.PedidoId" class="btn btn-sm btn-outline-secondary">
+                            Ver detalle
+                        </a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@* Paginación *@
+@if (pages > 1)
+{
+    <nav>
+        <ul class="pagination justify-content-center">
+            <li class="page-item @(page <= 1 ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(page - 1)">Anterior</a>
+            </li>
+            @for (int i = 1; i <= pages; i++)
+            {
+                <li class="page-item @(i == page ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+                </li>
+            }
+            <li class="page-item @(page >= pages ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(page + 1)">Siguiente</a>
+            </li>
+        </ul>
+    </nav>
+}
+
+<p class="text-muted text-center small">Mostrando @Model.Count de @total pedidos</p>

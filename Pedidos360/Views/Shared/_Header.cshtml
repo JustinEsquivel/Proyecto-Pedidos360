@@ -19,35 +19,36 @@
                         <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                     </li>
 
-                    @* Admin: Usuarios + Clientes *@
-                    @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+                    @if (User.Identity?.IsAuthenticated == true)
                     {
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
-                        </li>
+                        @* Admin: gestión de usuarios y clientes *@
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Clientes" asp-action="Index">Clientes</a>
+                            </li>
+                        }
 
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Clientes" asp-action="Index">Clientes</a>
-                        </li>
-                    }
+                        @* Admin y Ventas: catálogo de productos *@
+                        @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Productos</a>
+                            </li>
+                        }
 
-                    @* Ventas: catálogo + pedidos *@
-                    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Ventas") || User.IsInRole("Admin")))
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Productos</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Pedidos" asp-action="Index">Pedidos</a>
-                        </li>
-                    }
+                        @* Solo Operaciones: accede como Inventario *@
+                        @if (User.IsInRole("Operaciones") && !User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Inventario</a>
+                            </li>
+                        }
 
-                    @* Operaciones: inventario + pedidos *@
-                    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Operaciones") || User.IsInRole("Admin")))
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Inventario</a>
-                        </li>
+                        @* Todos los roles autenticados ven Pedidos (una sola vez) *@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Pedidos" asp-action="Index">Pedidos</a>
                         </li>

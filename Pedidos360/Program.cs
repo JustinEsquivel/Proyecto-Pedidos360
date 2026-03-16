@@ -49,6 +49,9 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Mapea controladores con rutas por atributo (API controllers)
+app.MapControllers();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");

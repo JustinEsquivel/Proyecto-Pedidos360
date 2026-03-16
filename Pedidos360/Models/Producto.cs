@@ -18,7 +18,7 @@ namespace Pedidos360.Models
         public string Nombre { get; set; }
 
         [Required(ErrorMessage = "El precio es requerido")]
-        [Range(typeof(decimal), "0.01", "999999999", ErrorMessage = "El precio debe ser mayor a 0")]
+        [Range(typeof(decimal), "0.01", "999999999", ErrorMessage = "El precio debe ser mayor a 0", ParseLimitsInInvariantCulture = true)]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Precio { get; set; }
 

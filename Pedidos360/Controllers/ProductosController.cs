@@ -81,14 +81,7 @@ namespace Pedidos360.Controllers
         // CREATE
         public async Task<IActionResult> Create()
         {
-            ViewBag.Categorias = await _context.Categorias
-            .Select(c => new SelectListItem
-            {
-                Value = c.CategoriaId.ToString(),
-                Text = c.Nombre
-            })
-            .ToListAsync();
-
+            await CargarCategoriasViewBag();
             return View();
         }
 
@@ -150,14 +143,7 @@ namespace Pedidos360.Controllers
             var producto = await _context.Productos.FindAsync(id);
             if (producto == null) return NotFound();
 
-            ViewBag.Categorias = await _context.Categorias
-            .Select(c => new SelectListItem
-            {
-                Value = c.CategoriaId.ToString(),
-                Text = c.Nombre
-            })
-            .ToListAsync();
-
+            await CargarCategoriasViewBag();
             return View(producto);
         }
 
@@ -167,44 +153,36 @@ namespace Pedidos360.Controllers
         {
             if (id != producto.ProductoId) return NotFound();
 
+            // Cargar ViewBag antes de cualquier return View() para que la vista siempre lo tenga
+            await CargarCategoriasViewBag();
+
             if (!ModelState.IsValid)
                 return AjaxModelStateErrorOrView(producto);
 
             var productoDb = await _context.Productos.FindAsync(id);
+            if (productoDb == null) return NotFound();
 
             if (await _context.Productos.AnyAsync(p => p.ProductoId != id && p.Nombre == producto.Nombre))
-                ModelState.AddModelError(nameof(Producto.Nombre), "Ya existe otro cliente con ese nombre.");
-
+                ModelState.AddModelError(nameof(Producto.Nombre), "Ya existe otro producto con ese nombre.");
 
             if (!ModelState.IsValid)
                 return AjaxModelStateErrorOrView(producto);
 
-            ViewBag.Categorias = await _context.Categorias
-            .Select(c => new SelectListItem
-            {
-                Value = c.CategoriaId.ToString(),
-                Text = c.Nombre
-            })
-            .ToListAsync();
-
             // Actualizar campos normales
-            productoDb.Nombre = producto.Nombre;
-            productoDb.Precio = producto.Precio;
+            productoDb.Nombre       = producto.Nombre;
+            productoDb.Precio       = producto.Precio;
             productoDb.ImpuestoPorc = producto.ImpuestoPorc;
-            productoDb.Stock = producto.Stock;
-            productoDb.Activo = producto.Activo;
-            productoDb.CategoriaId = producto.CategoriaId;
+            productoDb.Stock        = producto.Stock;
+            productoDb.Activo       = producto.Activo;
+            productoDb.CategoriaId  = producto.CategoriaId;
 
             // Solo actualizar imagen si subieron una nueva
             if (imagenFile != null && imagenFile.Length > 0)
             {
-                using (var memoryStream = new MemoryStream())
-                {
-                    await imagenFile.CopyToAsync(memoryStream);
-                    productoDb.ImagenUrl = Convert.ToBase64String(memoryStream.ToArray());
-                }
+                using var memoryStream = new MemoryStream();
+                await imagenFile.CopyToAsync(memoryStream);
+                productoDb.ImagenUrl = Convert.ToBase64String(memoryStream.ToArray());
             }
-
 
             try
             {
@@ -228,12 +206,11 @@ namespace Pedidos360.Controllers
             {
                 if (!await _context.Productos.AnyAsync(e => e.ProductoId == id))
                     return NotFound();
-
                 throw;
             }
             catch (DbUpdateException)
             {
-                ModelState.AddModelError("", "No se pudo actualizar el cliente.");
+                ModelState.AddModelError("", "No se pudo actualizar el producto.");
                 return AjaxModelStateErrorOrView(producto);
             }
         }
@@ -276,6 +253,18 @@ namespace Pedidos360.Controllers
 
             TempData["Ok"] = "Producto eliminado correctamente.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // Helper para cargar categorías en ViewBag
+        private async Task CargarCategoriasViewBag()
+        {
+            ViewBag.Categorias = await _context.Categorias
+                .Select(c => new SelectListItem
+                {
+                    Value = c.CategoriaId.ToString(),
+                    Text  = c.Nombre
+                })
+                .ToListAsync();
         }
 
         // Helpers de AJAX
