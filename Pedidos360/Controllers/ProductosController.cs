@@ -8,7 +8,9 @@ using Pedidos360.Models.ViewModels;
 
 namespace Pedidos360.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    // Todos los roles autenticados pueden acceder al controlador base;
+    // las acciones sensibles tienen su propio [Authorize].
+    [Authorize(Roles = "Admin,Ventas,Operaciones")]
     public class ProductosController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -215,7 +217,8 @@ namespace Pedidos360.Controllers
             }
         }
 
-        // DELETE
+        // DELETE GET — solo Admin
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -232,6 +235,7 @@ namespace Pedidos360.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var producto = await _context.Productos.FindAsync(id);

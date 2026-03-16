@@ -7,7 +7,9 @@ using Pedidos360.Models.ViewModels;
 
 namespace Pedidos360.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    // Admin y Ventas acceden a Clientes.
+    // Ventas necesita ver/buscar clientes para poder crear pedidos.
+    [Authorize(Roles = "Admin,Ventas")]
     public class ClientesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -69,11 +71,14 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
-        // CREATE
+        // CREATE GET — solo Admin
+        [Authorize(Roles = "Admin")]
         public IActionResult Create() => View();
 
+        // CREATE POST — solo Admin
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Nombre,Cedula,Correo,Telefono")] Cliente cliente)
         {
             if (!ModelState.IsValid)
@@ -122,7 +127,8 @@ namespace Pedidos360.Controllers
             }
         }
 
-        // EDIT
+        // EDIT GET — solo Admin
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -133,8 +139,10 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
+        // EDIT POST — solo Admin
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("ClienteId,Nombre,Cedula,Correo,Telefono")] Cliente cliente)
         {
             if (id != cliente.ClienteId) return NotFound();
@@ -188,7 +196,8 @@ namespace Pedidos360.Controllers
             }
         }
 
-        // DELETE
+        // DELETE GET — solo Admin
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -202,8 +211,10 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
+        // DELETE POST — solo Admin
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var cliente = await _context.Clientes.FindAsync(id);

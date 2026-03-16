@@ -1,10 +1,25 @@
 ﻿@page
 @model AccessDeniedModel
 @{
-    ViewData["Title"] = "Access denied";
+    ViewData["Title"] = "Acceso denegado";
 }
 
-<header>
-    <h1 class="text-danger">@ViewData["Title"]</h1>
-    <p class="text-danger">You do not have access to this resource.</p>
-</header>
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="alert alert-danger">
+                <h2 class="alert-heading">
+                    <i class="bi bi-shield-lock"></i> Acceso denegado
+                </h2>
+                <hr />
+                <p>No tienes permiso para acceder a esta sección.</p>
+                <p class="mb-0">
+                    Si crees que esto es un error, contacta al administrador del sistema.
+                </p>
+            </div>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-3">
+                Volver al inicio
+            </a>
+        </div>
+    </div>
+</div>

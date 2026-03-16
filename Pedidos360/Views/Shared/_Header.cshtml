@@ -21,34 +21,37 @@
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        @* Admin: gestión de usuarios y clientes *@
+                        @* Gestión de usuarios: solo Admin *@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
                             </li>
+                        }
+
+                        @* Clientes: Admin y Ventas *@
+                        @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
+                        {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Clientes" asp-action="Index">Clientes</a>
                             </li>
                         }
 
-                        @* Admin y Ventas: catálogo de productos *@
+                        @* Catálogo de productos: Admin y Ventas ven "Productos", Operaciones ve "Inventario" *@
                         @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Productos</a>
                             </li>
                         }
-
-                        @* Solo Operaciones: accede como Inventario *@
-                        @if (User.IsInRole("Operaciones") && !User.IsInRole("Admin"))
+                        else if (User.IsInRole("Operaciones"))
                         {
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Inventario</a>
                             </li>
                         }
 
-                        @* Todos los roles autenticados ven Pedidos (una sola vez) *@
+                        @* Pedidos: todos los roles *@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="Pedidos" asp-action="Index">Pedidos</a>
                         </li>
