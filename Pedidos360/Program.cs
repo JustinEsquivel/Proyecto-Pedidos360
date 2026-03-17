@@ -29,17 +29,10 @@ builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
-await SeedData.EnsureSeedAsync(app.Services);
+app.UseExceptionHandler("/Error/Index");
+app.UseStatusCodePagesWithReExecute("/Error/Index", "?statusCode={0}");
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseDeveloperExceptionPage();
-}
-else
-{
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
-}
+await SeedData.EnsureSeedAsync(app.Services);
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

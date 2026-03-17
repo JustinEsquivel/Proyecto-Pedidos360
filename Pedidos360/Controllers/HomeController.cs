@@ -6,8 +6,16 @@ namespace Pedidos360.Controllers
 {
     public class HomeController : Controller
     {
+        private readonly ILogger<HomeController> _logger;
+
+        public HomeController(ILogger<HomeController> logger)
+        {
+            _logger = logger;
+        }
+
         public IActionResult Index()
         {
+            _logger.LogInformation("Usuario entró a Home/Index");
             return View();
         }
 
@@ -16,10 +24,22 @@ namespace Pedidos360.Controllers
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public IActionResult Error500()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            _logger.LogError("Se produjo un error 500");
+            return View();
         }
+
+        public IActionResult Error404()
+        {
+            _logger.LogWarning("Página no encontrada (404)");
+            return View();
+        }
+
+        public IActionResult ProbarError500()
+        {
+            throw new Exception("Error de prueba");
+        }
+
     }
 }
