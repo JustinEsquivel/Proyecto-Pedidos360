@@ -54,12 +54,20 @@ namespace Pedidos360.Controllers
             };
 
             ViewBag.Categorias = await _context.Categorias
-            .Select(c => new SelectListItem
-            {
-                Value = c.CategoriaId.ToString(),
-                Text = c.Nombre
-            })
-            .ToListAsync();
+                .Select(c => new SelectListItem
+                {
+                    Value = c.CategoriaId.ToString(),
+                    Text  = c.Nombre
+                })
+                .ToListAsync();
+
+            ViewBag.ProductosCarousel = await _context.Productos
+                .Include(p => p.Categoria)
+                .Where(p => p.Activo)
+                .AsNoTracking()
+                .OrderBy(p => p.Nombre)
+                .Take(8)
+                .ToListAsync();
 
             return View(vm);
         }

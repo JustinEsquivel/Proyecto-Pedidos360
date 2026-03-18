@@ -5,8 +5,39 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h2>Pedido #@Model.PedidoId</h2>
-    <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    <div class="d-flex gap-2">
+        @if (Model.Estado == "Pendiente" && (User.IsInRole("Admin") || User.IsInRole("Ventas")))
+        {
+            <form asp-action="CambiarEstado" asp-route-id="@Model.PedidoId" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-primary">Confirmar Pedido</button>
+            </form>
+        }
+        @if (Model.Estado == "Confirmado" && User.IsInRole("Admin"))
+        {
+            <form asp-action="CambiarEstado" asp-route-id="@Model.PedidoId" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-success">Facturar Pedido</button>
+            </form>
+        }
+        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+    </div>
 </div>
+
+@if (TempData["Ok"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show">
+        @TempData["Ok"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Err"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show">
+        @TempData["Err"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
 
 <div class="row mb-4">
     <div class="col-md-6">
@@ -19,7 +50,7 @@
 
                     <dt class="col-sm-4">Estado</dt>
                     <dd class="col-sm-8">
-                        <span class="badge @(Model.Estado == "Confirmado" ? "bg-success" : "bg-warning text-dark")">
+                        <span class="badge @(Model.Estado == "Facturado" ? "bg-success" : Model.Estado == "Confirmado" ? "bg-primary" : "bg-warning text-dark")">
                             @Model.Estado
                         </span>
                     </dd>
@@ -62,7 +93,7 @@
                         <th>Producto</th>
                         <th class="text-end">Precio Unit.</th>
                         <th class="text-center">Cantidad</th>
-                        <th class="text-end">Descuento</th>
+                        <th class="text-end">Desc. %</th>
                         <th class="text-end">Impuesto %</th>
                         <th class="text-end">Total Línea</th>
                     </tr>
@@ -74,7 +105,7 @@
                             <td>@d.Producto?.Nombre</td>
                             <td class="text-end">₡@d.PrecioUnit.ToString("N2")</td>
                             <td class="text-center">@d.Cantidad</td>
-                            <td class="text-end">₡@d.Descuento.ToString("N2")</td>
+                            <td class="text-end">@d.Descuento.ToString("N2")%</td>
                             <td class="text-end">@d.ImpuestoPorc.ToString("N2")%</td>
                             <td class="text-end fw-semibold">₡@d.TotalLinea.ToString("N2")</td>
                         </tr>

@@ -15,7 +15,7 @@ namespace Pedidos360.Models
         [StringLength(200, ErrorMessage = "El nombre no puede exceder 200 caracteres")]
         [RegularExpression(@"^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s]+$",
             ErrorMessage = "El nombre solo puede contener letras, números y espacios")]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = null!;
 
         [Required(ErrorMessage = "El precio es requerido")]
         [Range(typeof(decimal), "0.01", "999999999", ErrorMessage = "El precio debe ser mayor a 0", ParseLimitsInInvariantCulture = true)]

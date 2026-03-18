@@ -16,20 +16,20 @@ namespace Pedidos360.Models
 
         [Required(ErrorMessage = "La provincia es requerida")]
         [StringLength(100)]
-        public string Provincia { get; set; }
+        public string Provincia { get; set; } = null!;
 
         [Required(ErrorMessage = "El cantón es requerido")]
         [StringLength(100)]
-        public string Canton { get; set; }
+        public string Canton { get; set; } = null!;
 
         [Required(ErrorMessage = "El distrito es requerido")]
         [StringLength(100)]
-        public string Distrito { get; set; }
+        public string Distrito { get; set; } = null!;
 
         public bool EsPrincipal { get; set; } = false;
 
         // Navegación
         [ForeignKey("ClienteId")]
-        public virtual Cliente Cliente { get; set; }
+        public virtual Cliente Cliente { get; set; } = null!;
     }
 }

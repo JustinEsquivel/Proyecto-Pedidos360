@@ -13,9 +13,9 @@ namespace Pedidos360.Models
 
         [Required(ErrorMessage = "El nombre de la categoría es requerido")]
         [StringLength(100, ErrorMessage = "El nombre no puede exceder 100 caracteres")]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = null!;
 
         // Navegación
-        public virtual ICollection<Producto> Productos { get; set; }
+        public virtual ICollection<Producto> Productos { get; set; } = new List<Producto>();
     }
 }

@@ -18,7 +18,8 @@ namespace Pedidos360.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal PrecioUnit { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
+        [Range(0, 100, ErrorMessage = "El descuento debe estar entre 0 y 100%")]
+        [Column(TypeName = "decimal(5,2)")]
         public decimal Descuento { get; set; } = 0;
 
         [Required]
@@ -38,9 +39,9 @@ namespace Pedidos360.Models
 
         // Navegación
         [ForeignKey("PedidoId")]
-        public virtual Pedido Pedido { get; set; }
+        public virtual Pedido Pedido { get; set; } = null!;
 
         [ForeignKey("ProductoId")]
-        public virtual Producto Producto { get; set; }
+        public virtual Producto Producto { get; set; } = null!;
     }
 }

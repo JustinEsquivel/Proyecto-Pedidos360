@@ -31,9 +31,9 @@ public class UsuariosController : Controller
         if (!string.IsNullOrWhiteSpace(texto))
         {
             query = query.Where(u =>
-                u.UserName.Contains(texto) ||
-                u.Email.Contains(texto) ||
-                u.NombreCompleto.Contains(texto));
+                (u.UserName != null && u.UserName.Contains(texto)) ||
+                (u.Email != null && u.Email.Contains(texto)) ||
+                (u.NombreCompleto != null && u.NombreCompleto.Contains(texto)));
         }
 
         // Filtro por rol (se filtra por ids de usuarios en el rol)
@@ -89,9 +89,9 @@ public class UsuariosController : Controller
         var vm = new UsuarioEditVM
         {
             Id = user.Id,
-            UserName = user.UserName,
-            Email = user.Email,
-            NombreCompleto = user.NombreCompleto,
+            UserName = user.UserName ?? string.Empty,
+            Email = user.Email ?? string.Empty,
+            NombreCompleto = user.NombreCompleto ?? string.Empty,
             Rol = roles.FirstOrDefault() ?? "Ventas"
         };
 

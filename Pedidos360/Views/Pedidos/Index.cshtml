@@ -62,7 +62,7 @@
                     <td>@p.Cliente?.Nombre</td>
                     <td>@p.Usuario?.NombreCompleto</td>
                     <td>
-                        <span class="badge @(p.Estado == "Confirmado" ? "bg-success" : "bg-warning text-dark")">
+                        <span class="badge @(p.Estado == "Facturado" ? "bg-success" : p.Estado == "Confirmado" ? "bg-primary" : "bg-warning text-dark")">
                             @p.Estado
                         </span>
                     </td>

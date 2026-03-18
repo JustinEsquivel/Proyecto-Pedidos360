@@ -35,15 +35,15 @@ namespace Pedidos360.Models
         public int ClienteId { get; set; }
 
         [Required]
-        public string UsuarioId { get; set; }
+        public string UsuarioId { get; set; } = null!;
 
         // Navegación
         [ForeignKey("ClienteId")]
-        public virtual Cliente Cliente { get; set; }
+        public virtual Cliente Cliente { get; set; } = null!;
 
         [ForeignKey("UsuarioId")]
-        public virtual ApplicationUser Usuario { get; set; }
+        public virtual ApplicationUser Usuario { get; set; } = null!;
 
-        public virtual ICollection<PedidoDetalle> Detalles { get; set; }
+        public virtual ICollection<PedidoDetalle> Detalles { get; set; } = new List<PedidoDetalle>();
     }
 }

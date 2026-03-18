@@ -35,8 +35,8 @@ namespace Pedidos360.Controllers.Api
             if (lineas.Any(l => l.Cantidad <= 0))
                 return BadRequest(new { error = "La cantidad debe ser mayor a 0." });
 
-            if (lineas.Any(l => l.Descuento < 0))
-                return BadRequest(new { error = "El descuento no puede ser negativo." });
+            if (lineas.Any(l => l.Descuento < 0 || l.Descuento > 100))
+                return BadRequest(new { error = "El descuento debe estar entre 0 y 100%." });
 
             var productoIds = lineas.Select(l => l.ProductoId).Distinct().ToList();
 
@@ -55,8 +55,8 @@ namespace Pedidos360.Controllers.Api
                 if (producto == null)
                     return BadRequest(new { error = $"El producto con ID {linea.ProductoId} no existe o no está activo." });
 
-                decimal baseLinea = (producto.Precio * linea.Cantidad) - linea.Descuento;
-                if (baseLinea < 0) baseLinea = 0;
+                decimal brutoLinea = producto.Precio * linea.Cantidad;
+                decimal baseLinea  = brutoLinea * (1 - linea.Descuento / 100m);
 
                 decimal impuestoLinea = baseLinea * (producto.ImpuestoPorc / 100m);
 

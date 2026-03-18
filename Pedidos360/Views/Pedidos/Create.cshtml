@@ -60,8 +60,8 @@
                     <input type="number" id="inputCantidad" class="form-control" value="1" min="1" />
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label" for="inputDescuento">Descuento (₡)</label>
-                    <input type="number" id="inputDescuento" class="form-control" value="0" min="0" step="0.01" />
+                    <label class="form-label" for="inputDescuento">Descuento (%)</label>
+                    <input type="number" id="inputDescuento" class="form-control" value="0" min="0" max="100" step="0.01" />
                 </div>
                 <div class="col-md-3">
                     <button type="button" id="btnAgregar" class="btn btn-success w-100" disabled>
@@ -84,7 +84,7 @@
                             <th>Producto</th>
                             <th class="text-end">Precio Unit.</th>
                             <th class="text-center">Cantidad</th>
-                            <th class="text-end">Descuento (₡)</th>
+                            <th class="text-end">Desc. %</th>
                             <th class="text-end">Impuesto %</th>
                             <th class="text-end">Total Línea</th>
                             <th></th>
@@ -264,8 +264,8 @@
             alert('La cantidad debe ser mayor a 0.');
             return;
         }
-        if (descuento < 0) {
-            alert('El descuento no puede ser negativo.');
+        if (descuento < 0 || descuento > 100) {
+            alert('El descuento debe estar entre 0% y 100%.');
             return;
         }
 
@@ -316,8 +316,9 @@
         filaVacia.style.display = lineas.length === 0 ? '' : 'none';
 
         lineas.forEach((l, idx) => {
-            const baseLinea     = (l.precio * l.cantidad) - l.descuento;
-            const impuestoLin   = baseLinea > 0 ? baseLinea * (l.impuesto / 100) : 0;
+            const brutoLinea    = l.precio * l.cantidad;
+            const baseLinea     = brutoLinea * (1 - l.descuento / 100);
+            const impuestoLin   = baseLinea * (l.impuesto / 100);
             const totalLinea    = baseLinea + impuestoLin;
 
             const tr = document.createElement('tr');
@@ -333,8 +334,8 @@
                 </td>
                 <td class="text-end">
                     <input type="number" class="form-control form-control-sm text-end mx-auto"
-                           style="width:100px"
-                           value="${l.descuento}" min="0" step="0.01"
+                           style="width:90px"
+                           value="${l.descuento}" min="0" max="100" step="0.01"
                            data-idx="${idx}" data-field="descuento" />
                 </td>
                 <td class="text-end">${l.impuesto}%</td>
@@ -363,7 +364,8 @@
                         lineas[idx].cantidad = Math.floor(val);
                     }
                 } else if (field === 'descuento') {
-                    lineas[idx].descuento = val < 0 ? 0 : val;
+                    lineas[idx].descuento = val < 0 ? 0 : (val > 100 ? 100 : val);
+                    this.value = lineas[idx].descuento;
                 }
 
                 renderizarTabla();

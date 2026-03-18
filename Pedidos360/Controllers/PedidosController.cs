@@ -144,9 +144,9 @@ namespace Pedidos360.Controllers
             {
                 var prod = productos.First(p => p.ProductoId == linea.ProductoId);
 
-                decimal descuento    = linea.Descuento < 0 ? 0 : linea.Descuento;
-                decimal baseLinea    = (prod.Precio * linea.Cantidad) - descuento;
-                if (baseLinea < 0) baseLinea = 0;
+                decimal descPorc     = linea.Descuento < 0 ? 0 : (linea.Descuento > 100 ? 100 : linea.Descuento);
+                decimal brutoLinea   = prod.Precio * linea.Cantidad;
+                decimal baseLinea    = brutoLinea * (1 - descPorc / 100m);
                 decimal impuestoLin  = baseLinea * (prod.ImpuestoPorc / 100m);
                 decimal totalLinea   = baseLinea + impuestoLin;
 
@@ -158,7 +158,7 @@ namespace Pedidos360.Controllers
                     ProductoId   = prod.ProductoId,
                     Cantidad     = linea.Cantidad,
                     PrecioUnit   = prod.Precio,
-                    Descuento    = descuento,
+                    Descuento    = descPorc,
                     ImpuestoPorc = prod.ImpuestoPorc,
                     TotalLinea   = Math.Round(totalLinea, 2)
                 });
@@ -195,6 +195,33 @@ namespace Pedidos360.Controllers
             }
         }
 
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin,Ventas")]
+        public async Task<IActionResult> CambiarEstado(int id)
+        {
+            var pedido = await _context.Pedidos.FindAsync(id);
+            if (pedido == null) return NotFound();
+
+            if (pedido.Estado == "Pendiente" && (User.IsInRole("Admin") || User.IsInRole("Ventas")))
+            {
+                pedido.Estado = "Confirmado";
+            }
+            else if (pedido.Estado == "Confirmado" && User.IsInRole("Admin"))
+            {
+                pedido.Estado = "Facturado";
+            }
+            else
+            {
+                TempData["Err"] = "No se puede cambiar el estado del pedido.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["Ok"] = $"Pedido #{id} marcado como '{pedido.Estado}'.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
 
         private async Task CargarClientesViewBag()
         {
