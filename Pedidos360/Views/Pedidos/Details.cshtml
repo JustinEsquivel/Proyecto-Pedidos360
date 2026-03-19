@@ -8,6 +8,9 @@
     <div class="d-flex gap-2">
         @if (Model.Estado == "Pendiente" && (User.IsInRole("Admin") || User.IsInRole("Ventas")))
         {
+            <a asp-action="Edit" asp-route-id="@Model.PedidoId" class="btn btn-warning">
+                <i class="bi bi-pencil"></i> Editar Pedido
+            </a>
             <form asp-action="CambiarEstado" asp-route-id="@Model.PedidoId" method="post">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="btn btn-primary">Confirmar Pedido</button>

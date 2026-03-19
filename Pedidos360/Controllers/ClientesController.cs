@@ -19,7 +19,6 @@ namespace Pedidos360.Controllers
             _context = context;
         }
 
-        // INDEX
         public async Task<IActionResult> Index(string? nombre, string? cedula, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
@@ -56,7 +55,6 @@ namespace Pedidos360.Controllers
             return View(vm);
         }
 
-        // DETAILS
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -71,11 +69,9 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
-        // CREATE GET — solo Admin
         [Authorize(Roles = "Admin")]
         public IActionResult Create() => View();
 
-        // CREATE POST — solo Admin
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -127,7 +123,6 @@ namespace Pedidos360.Controllers
             }
         }
 
-        // EDIT GET — solo Admin
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -139,7 +134,6 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
-        // EDIT POST — solo Admin
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -196,7 +190,6 @@ namespace Pedidos360.Controllers
             }
         }
 
-        // DELETE GET — solo Admin
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -211,7 +204,6 @@ namespace Pedidos360.Controllers
             return View(cliente);
         }
 
-        // DELETE POST — solo Admin
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin")]
@@ -235,7 +227,6 @@ namespace Pedidos360.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Helpers de AJAX
         private bool IsAjaxRequest()
         {
             return Request.Headers["X-Requested-With"] == "XMLHttpRequest";

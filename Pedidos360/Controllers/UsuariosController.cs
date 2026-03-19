@@ -36,7 +36,6 @@ public class UsuariosController : Controller
                 (u.NombreCompleto != null && u.NombreCompleto.Contains(texto)));
         }
 
-        // Filtro por rol (se filtra por ids de usuarios en el rol)
         if (!string.IsNullOrWhiteSpace(rol))
         {
             var usersInRole = await _userManager.GetUsersInRoleAsync(rol);
@@ -65,7 +64,6 @@ public class UsuariosController : Controller
         return View(vm);
     }
 
-    // GET: Usuarios/Details/id
     public async Task<IActionResult> Details(string? id)
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
@@ -77,7 +75,6 @@ public class UsuariosController : Controller
         return View(user);
     }
 
-    // GET: Usuarios/Edit/id
     public async Task<IActionResult> Edit(string? id)
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
@@ -99,7 +96,6 @@ public class UsuariosController : Controller
         return View(vm);
     }
 
-    // POST: Usuarios/Edit
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(UsuarioEditVM vm)
@@ -120,7 +116,6 @@ public class UsuariosController : Controller
         var user = await _userManager.FindByIdAsync(vm.Id);
         if (user == null) return NotFound();
 
-        // Validaciones de duplicados
         var byName = await _userManager.FindByNameAsync(vm.UserName);
         if (byName != null && byName.Id != user.Id)
             ModelState.AddModelError(nameof(vm.UserName), "Ese nombre de usuario ya existe.");
@@ -135,7 +130,6 @@ public class UsuariosController : Controller
             return View(vm);
         }
 
-        // Actualizar datos
         if (user.UserName != vm.UserName)
         {
             var r = await _userManager.SetUserNameAsync(user, vm.UserName);
@@ -167,7 +161,6 @@ public class UsuariosController : Controller
             return View(vm);
         }
 
-        // Actualizar rol 
         var currentRoles = await _userManager.GetRolesAsync(user);
         var current = currentRoles.FirstOrDefault();
 
@@ -183,7 +176,6 @@ public class UsuariosController : Controller
         return RedirectToAction(nameof(Index));
     }
 
-    // GET: Usuarios/Delete/id
     public async Task<IActionResult> Delete(string? id)
     {
         if (string.IsNullOrWhiteSpace(id)) return NotFound();
@@ -195,7 +187,6 @@ public class UsuariosController : Controller
         return View(user);
     }
 
-    // POST: Usuarios/DeleteConfirmed/id
     [HttpPost, ActionName("Delete")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteConfirmed(string id)
@@ -203,7 +194,6 @@ public class UsuariosController : Controller
         var user = await _userManager.FindByIdAsync(id);
         if (user == null) return RedirectToAction(nameof(Index));
 
-        // Evita que el Admin se borre a sí mismo
         var currentUserId = _userManager.GetUserId(User);
         if (currentUserId == user.Id)
         {

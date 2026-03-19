@@ -1,0 +1,445 @@
+@model Pedidos360.Models.Pedido
+@{
+    ViewData["Title"] = $"Editar Pedido #{Model.PedidoId}";
+    int clienteIdActual = ViewBag.ClienteIdActual ?? 0;
+}
+
+<h2 class="mb-4">Editar Pedido #@Model.PedidoId</h2>
+
+@if (!ViewData.ModelState.IsValid)
+{
+    <div class="alert alert-danger">
+        <ul class="mb-0">
+            @foreach (var err in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <li>@err.ErrorMessage</li>
+            }
+        </ul>
+    </div>
+}
+
+<form id="formPedido" asp-action="Edit" asp-route-id="@Model.PedidoId" method="post">
+    @Html.AntiForgeryToken()
+
+    @* ── Cliente ── *@
+    <div class="card mb-4">
+        <div class="card-header fw-bold">1. Seleccionar Cliente</div>
+        <div class="card-body">
+            <div class="col-md-6">
+                <label class="form-label" for="clienteId">Cliente <span class="text-danger">*</span></label>
+                <select id="clienteId" name="clienteId" class="form-select" required>
+                    <option value="">— Seleccione un cliente —</option>
+                    @foreach (var c in ViewBag.Clientes as IEnumerable<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> ?? Enumerable.Empty<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>())
+                    {
+                        <option value="@c.Value" selected="@(c.Value == clienteIdActual.ToString())">@c.Text</option>
+                    }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    @* ── Búsqueda de Productos (AJAX Autosuggest) ── *@
+    <div class="card mb-4">
+        <div class="card-header fw-bold">2. Agregar Productos</div>
+        <div class="card-body">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label" for="busquedaProducto">Buscar producto por nombre</label>
+                    <div class="position-relative">
+                        <input type="text"
+                               id="busquedaProducto"
+                               class="form-control"
+                               placeholder="Escriba al menos 1 carácter..."
+                               autocomplete="off" />
+                        <div id="sugerencias"
+                             class="list-group position-absolute w-100 shadow-sm"
+                             style="z-index:1000; display:none; max-height:260px; overflow-y:auto;">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="inputCantidad">Cantidad</label>
+                    <input type="number" id="inputCantidad" class="form-control" value="1" min="1" />
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label" for="inputDescuento">Descuento (%)</label>
+                    <input type="number" id="inputDescuento" class="form-control" value="0" min="0" max="100" step="0.01" />
+                </div>
+                <div class="col-md-3">
+                    <button type="button" id="btnAgregar" class="btn btn-success w-100" disabled>
+                        Agregar al pedido
+                    </button>
+                </div>
+            </div>
+            <div id="msgProducto" class="text-muted small mt-1"></div>
+        </div>
+    </div>
+
+    @* ── Tabla de líneas del pedido ── *@
+    <div class="card mb-4">
+        <div class="card-header fw-bold">3. Líneas del Pedido</div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0" id="tablaLineas">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th>Producto</th>
+                            <th class="text-end">Precio Unit.</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-end">Desc. %</th>
+                            <th class="text-end">Impuesto %</th>
+                            <th class="text-end">Total Línea</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyLineas">
+                        <tr id="filaVacia">
+                            <td colspan="7" class="text-center text-muted py-3">
+                                No hay productos agregados. Use el buscador de arriba.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @* ── Totales en tiempo real ── *@
+    <div class="row justify-content-end mb-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body p-0">
+                    <table class="table mb-0">
+                        <tr>
+                            <th class="ps-3">Subtotal</th>
+                            <td class="text-end pe-3" id="lblSubtotal">₡0.00</td>
+                        </tr>
+                        <tr>
+                            <th class="ps-3">Impuestos</th>
+                            <td class="text-end pe-3" id="lblImpuestos">₡0.00</td>
+                        </tr>
+                        <tr class="table-dark">
+                            <th class="ps-3 fs-5">TOTAL</th>
+                            <td class="text-end pe-3 fw-bold fs-5" id="lblTotal">₡0.00</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="card-footer text-muted small text-end" id="lblEstadoCalculo">
+                    Calculando via API...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <input type="hidden" id="lineasJson" name="lineasJson" value="[]" />
+
+    <div class="d-flex gap-2 justify-content-end">
+        <a asp-action="Details" asp-route-id="@Model.PedidoId" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" id="btnGuardar" class="btn btn-warning" disabled>
+            Guardar cambios
+        </button>
+    </div>
+</form>
+
+@section Scripts {
+<script>
+(function () {
+    // Líneas precargadas desde el servidor
+    const lineasIniciales = @Html.Raw(ViewBag.LineasIniciales ?? "[]");
+
+    /** @@type {Array<{productoId,nombre,precio,impuesto,stock,cantidad,descuento}>} */
+    let lineas = lineasIniciales.map(l => ({
+        productoId: l.productoId,
+        nombre:     l.nombre,
+        precio:     Number(l.precio),
+        impuesto:   Number(l.impuesto),
+        stock:      l.stock,
+        cantidad:   l.cantidad,
+        descuento:  Number(l.descuento)
+    }));
+
+    let productoSeleccionado = null;
+
+    const inputBusqueda  = document.getElementById('busquedaProducto');
+    const divSugerencias = document.getElementById('sugerencias');
+    const inputCantidad  = document.getElementById('inputCantidad');
+    const inputDescuento = document.getElementById('inputDescuento');
+    const btnAgregar     = document.getElementById('btnAgregar');
+    const tbodyLineas    = document.getElementById('tbodyLineas');
+    const filaVacia      = document.getElementById('filaVacia');
+    const lblSubtotal    = document.getElementById('lblSubtotal');
+    const lblImpuestos   = document.getElementById('lblImpuestos');
+    const lblTotal       = document.getElementById('lblTotal');
+    const lblEstado      = document.getElementById('lblEstadoCalculo');
+    const hiddenLineas   = document.getElementById('lineasJson');
+    const btnGuardar     = document.getElementById('btnGuardar');
+    const msgProducto    = document.getElementById('msgProducto');
+
+    const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+
+    let debounceTimer;
+
+    inputBusqueda.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        productoSeleccionado = null;
+        btnAgregar.disabled  = true;
+        msgProducto.textContent = '';
+
+        const q = inputBusqueda.value.trim();
+        if (q.length < 1) { ocultarSugerencias(); return; }
+
+        debounceTimer = setTimeout(() => buscarProductos(q), 280);
+    });
+
+    async function buscarProductos(q) {
+        try {
+            const res = await fetch(`/api/productos/buscar?q=${encodeURIComponent(q)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (!res.ok) { ocultarSugerencias(); return; }
+            mostrarSugerencias(await res.json());
+        } catch {
+            ocultarSugerencias();
+        }
+    }
+
+    function mostrarSugerencias(productos) {
+        divSugerencias.innerHTML = '';
+        if (productos.length === 0) {
+            divSugerencias.innerHTML = '<div class="list-group-item text-muted">Sin resultados</div>';
+            divSugerencias.style.display = 'block';
+            return;
+        }
+        productos.forEach(p => {
+            const item = document.createElement('button');
+            item.type      = 'button';
+            item.className = 'list-group-item list-group-item-action py-2';
+            const stockCls = p.stock === 0 ? 'text-danger' : 'text-success';
+            item.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <span class="fw-semibold">${escHtml(p.nombre)}</span>
+                    <small class="${stockCls}">Stock: ${p.stock}</small>
+                </div>
+                <small class="text-muted">₡${formatNum(p.precio)} &nbsp;|&nbsp; IVA ${p.impuesto}%</small>
+            `;
+            if (p.stock === 0) { item.disabled = true; item.title = 'Sin stock disponible'; }
+            item.addEventListener('click', () => seleccionarProducto(p));
+            divSugerencias.appendChild(item);
+        });
+        divSugerencias.style.display = 'block';
+    }
+
+    function ocultarSugerencias() {
+        divSugerencias.style.display = 'none';
+        divSugerencias.innerHTML     = '';
+    }
+
+    function seleccionarProducto(p) {
+        productoSeleccionado    = p;
+        inputBusqueda.value     = p.nombre;
+        btnAgregar.disabled     = false;
+        msgProducto.textContent = `Precio: ₡${formatNum(p.precio)}  |  IVA: ${p.impuesto}%  |  Stock: ${p.stock}`;
+        ocultarSugerencias();
+        inputCantidad.focus();
+    }
+
+    document.addEventListener('click', function (e) {
+        if (!divSugerencias.contains(e.target) && e.target !== inputBusqueda) ocultarSugerencias();
+    });
+
+    btnAgregar.addEventListener('click', function () {
+        if (!productoSeleccionado) return;
+
+        const cantidad  = parseInt(inputCantidad.value,  10) || 1;
+        const descuento = parseFloat(inputDescuento.value) || 0;
+
+        if (cantidad <= 0)              { alert('La cantidad debe ser mayor a 0.'); return; }
+        if (descuento < 0 || descuento > 100) { alert('El descuento debe estar entre 0% y 100%.'); return; }
+
+        const yaEnPedido = lineas
+            .filter(l => l.productoId === productoSeleccionado.id)
+            .reduce((sum, l) => sum + l.cantidad, 0);
+
+        if (yaEnPedido + cantidad > productoSeleccionado.stock) {
+            alert(`Stock insuficiente. Disponible: ${productoSeleccionado.stock - yaEnPedido}`);
+            return;
+        }
+
+        const existente = lineas.find(
+            l => l.productoId === productoSeleccionado.id && l.descuento === descuento
+        );
+
+        if (existente) {
+            existente.cantidad += cantidad;
+        } else {
+            lineas.push({
+                productoId: productoSeleccionado.id,
+                nombre:     productoSeleccionado.nombre,
+                precio:     productoSeleccionado.precio,
+                impuesto:   productoSeleccionado.impuesto,
+                stock:      productoSeleccionado.stock,
+                cantidad,
+                descuento
+            });
+        }
+
+        inputBusqueda.value     = '';
+        inputCantidad.value     = '1';
+        inputDescuento.value    = '0';
+        productoSeleccionado    = null;
+        btnAgregar.disabled     = true;
+        msgProducto.textContent = '';
+
+        renderizarTabla();
+        recalcularTotales();
+    });
+
+    function renderizarTabla() {
+        Array.from(tbodyLineas.querySelectorAll('tr.linea-pedido')).forEach(r => r.remove());
+        filaVacia.style.display = lineas.length === 0 ? '' : 'none';
+
+        lineas.forEach((l, idx) => {
+            const brutoLinea  = l.precio * l.cantidad;
+            const baseLinea   = brutoLinea * (1 - l.descuento / 100);
+            const impuestoLin = baseLinea * (l.impuesto / 100);
+            const totalLinea  = baseLinea + impuestoLin;
+
+            const tr = document.createElement('tr');
+            tr.className = 'linea-pedido';
+            tr.innerHTML = `
+                <td>${escHtml(l.nombre)}</td>
+                <td class="text-end">₡${formatNum(l.precio)}</td>
+                <td class="text-center">
+                    <input type="number" class="form-control form-control-sm text-center mx-auto"
+                           style="width:80px"
+                           value="${l.cantidad}" min="1" max="${l.stock}"
+                           data-idx="${idx}" data-field="cantidad" />
+                </td>
+                <td class="text-end">
+                    <input type="number" class="form-control form-control-sm text-end mx-auto"
+                           style="width:90px"
+                           value="${l.descuento}" min="0" max="100" step="0.01"
+                           data-idx="${idx}" data-field="descuento" />
+                </td>
+                <td class="text-end">${l.impuesto}%</td>
+                <td class="text-end fw-semibold" id="totalLinea_${idx}">₡${formatNum(totalLinea)}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar"
+                            data-idx="${idx}" title="Eliminar">✕</button>
+                </td>
+            `;
+            tbodyLineas.appendChild(tr);
+        });
+
+        tbodyLineas.querySelectorAll('input[data-field]').forEach(inp => {
+            inp.addEventListener('change', function () {
+                const idx   = parseInt(this.dataset.idx, 10);
+                const field = this.dataset.field;
+                const val   = parseFloat(this.value) || 0;
+
+                if (field === 'cantidad') {
+                    if (val < 1) { this.value = 1; lineas[idx].cantidad = 1; }
+                    else if (val > lineas[idx].stock) { this.value = lineas[idx].stock; lineas[idx].cantidad = lineas[idx].stock; }
+                    else { lineas[idx].cantidad = Math.floor(val); }
+                } else if (field === 'descuento') {
+                    lineas[idx].descuento = val < 0 ? 0 : (val > 100 ? 100 : val);
+                    this.value = lineas[idx].descuento;
+                }
+
+                renderizarTabla();
+                recalcularTotales();
+            });
+        });
+
+        tbodyLineas.querySelectorAll('.btn-eliminar').forEach(btn => {
+            btn.addEventListener('click', function () {
+                lineas.splice(parseInt(this.dataset.idx, 10), 1);
+                renderizarTabla();
+                recalcularTotales();
+            });
+        });
+
+        hiddenLineas.value   = JSON.stringify(lineas.map(l => ({
+            productoId: l.productoId,
+            cantidad:   l.cantidad,
+            descuento:  l.descuento
+        })));
+        btnGuardar.disabled = lineas.length === 0;
+    }
+
+    let calcularTimer;
+
+    function recalcularTotales() {
+        if (lineas.length === 0) {
+            lblSubtotal.textContent  = '₡0.00';
+            lblImpuestos.textContent = '₡0.00';
+            lblTotal.textContent     = '₡0.00';
+            lblEstado.textContent    = '';
+            return;
+        }
+        lblEstado.textContent = 'Calculando...';
+        clearTimeout(calcularTimer);
+        calcularTimer = setTimeout(llamarApiCalcular, 350);
+    }
+
+    async function llamarApiCalcular() {
+        const payload = lineas.map(l => ({
+            productoId: l.productoId,
+            cantidad:   l.cantidad,
+            descuento:  l.descuento
+        }));
+        try {
+            const res = await fetch('/api/pedidos/calcular', {
+                method:  'POST',
+                headers: {
+                    'Content-Type':     'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': csrfToken
+                },
+                body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                lblEstado.textContent = `Error: ${err.error ?? res.statusText}`;
+                return;
+            }
+            const data = await res.json();
+            lblSubtotal.textContent  = `₡${formatNum(data.subtotal)}`;
+            lblImpuestos.textContent = `₡${formatNum(data.impuestos)}`;
+            lblTotal.textContent     = `₡${formatNum(data.total)}`;
+            lblEstado.textContent    = 'Totales actualizados ✓';
+        } catch {
+            lblEstado.textContent = 'Error al conectar con el servidor.';
+        }
+    }
+
+    document.getElementById('formPedido').addEventListener('submit', function (e) {
+        const clienteId = document.getElementById('clienteId').value;
+        if (!clienteId) { e.preventDefault(); alert('Debe seleccionar un cliente.'); return; }
+        if (lineas.length === 0) { e.preventDefault(); alert('Debe agregar al menos un producto al pedido.'); return; }
+        hiddenLineas.value = JSON.stringify(lineas.map(l => ({
+            productoId: l.productoId,
+            cantidad:   l.cantidad,
+            descuento:  l.descuento
+        })));
+    });
+
+    function formatNum(n) {
+        return Number(n).toLocaleString('es-CR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    // Inicializar con las líneas precargadas
+    renderizarTabla();
+    recalcularTotales();
+
+})();
+</script>
+}

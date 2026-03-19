@@ -5,7 +5,6 @@ using Pedidos360.Data;
 
 namespace Pedidos360.Controllers.Api
 {
-    /// API para cálculo de totales de pedido en tiempo real (consumida via AJAX).
     /// Solo accesible por usuarios autenticados.
     [Route("api/pedidos")]
     [ApiController]
@@ -19,13 +18,7 @@ namespace Pedidos360.Controllers.Api
             _context = context;
         }
 
-        /// POST /api/pedidos/calcular
-        /// Recibe las líneas del pedido y devuelve subtotal, impuestos y total calculados
-        /// usando los precios e impuestos reales desde la base de datos.
 
-        /// Body: [{ "productoId": 1, "cantidad": 2, "descuento": 0 }, ...]
-        /// Response: { "subtotal": 1000.00, "impuestos": 130.00, "total": 1130.00 }
-        /// Descuento es un monto fijo en moneda local que se resta a la línea completa.
         [HttpPost("calcular")]
         public async Task<IActionResult> Calcular([FromBody] List<LineaCalculoRequest>? lineas)
         {

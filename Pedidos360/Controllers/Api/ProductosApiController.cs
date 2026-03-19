@@ -5,7 +5,6 @@ using Pedidos360.Data;
 
 namespace Pedidos360.Controllers.Api
 {
-    /// API para búsqueda de productos (consumida via AJAX).
     /// Solo accesible por usuarios autenticados.
     [Route("api/productos")]
     [ApiController]
@@ -19,8 +18,7 @@ namespace Pedidos360.Controllers.Api
             _context = context;
         }
 
-        /// GET /api/productos/buscar?q=termo
-        /// Devuelve hasta 10 productos activos que coincidan con el término de búsqueda.
+
         [HttpGet("buscar")]
         public async Task<IActionResult> Buscar([FromQuery] string? q)
         {

@@ -9,7 +9,6 @@ using Pedidos360.Models.ViewModels;
 namespace Pedidos360.Controllers
 {
     // Todos los roles autenticados pueden acceder al controlador base;
-    // las acciones sensibles tienen su propio [Authorize].
     [Authorize(Roles = "Admin,Ventas,Operaciones")]
     public class ProductosController : Controller
     {
@@ -20,7 +19,6 @@ namespace Pedidos360.Controllers
             _context = context;
         }
 
-        // INDEX
         public async Task<IActionResult> Index(string? nombre, int? categoriaId, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
@@ -72,7 +70,6 @@ namespace Pedidos360.Controllers
             return View(vm);
         }
 
-        // DETAILS
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null) return NotFound();
@@ -88,7 +85,6 @@ namespace Pedidos360.Controllers
             return View(producto);
         }
 
-        // CREATE
         public async Task<IActionResult> Create()
         {
             await CargarCategoriasViewBag();
@@ -145,7 +141,6 @@ namespace Pedidos360.Controllers
             }
         }
 
-        // EDIT
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -163,7 +158,6 @@ namespace Pedidos360.Controllers
         {
             if (id != producto.ProductoId) return NotFound();
 
-            // Cargar ViewBag antes de cualquier return View() para que la vista siempre lo tenga
             await CargarCategoriasViewBag();
 
             if (!ModelState.IsValid)
@@ -178,7 +172,6 @@ namespace Pedidos360.Controllers
             if (!ModelState.IsValid)
                 return AjaxModelStateErrorOrView(producto);
 
-            // Actualizar campos normales
             productoDb.Nombre       = producto.Nombre;
             productoDb.Precio       = producto.Precio;
             productoDb.ImpuestoPorc = producto.ImpuestoPorc;
@@ -186,7 +179,6 @@ namespace Pedidos360.Controllers
             productoDb.Activo       = producto.Activo;
             productoDb.CategoriaId  = producto.CategoriaId;
 
-            // Solo actualizar imagen si subieron una nueva
             if (imagenFile != null && imagenFile.Length > 0)
             {
                 using var memoryStream = new MemoryStream();
@@ -225,7 +217,6 @@ namespace Pedidos360.Controllers
             }
         }
 
-        // DELETE GET — solo Admin
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -267,7 +258,6 @@ namespace Pedidos360.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Helper para cargar categorías en ViewBag
         private async Task CargarCategoriasViewBag()
         {
             ViewBag.Categorias = await _context.Categorias
@@ -279,7 +269,6 @@ namespace Pedidos360.Controllers
                 .ToListAsync();
         }
 
-        // Helpers de AJAX
         private bool IsAjaxRequest()
         {
             return Request.Headers["X-Requested-With"] == "XMLHttpRequest";
