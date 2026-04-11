@@ -18,8 +18,8 @@ namespace Pedidos360.Controllers
         {
             _context = context;
         }
-
-        public async Task<IActionResult> Index(string? nombre, int? categoriaId, int page = 1, int pageSize = 10)
+		// Muestra la lista de productos
+		public async Task<IActionResult> Index(string? nombre, int? categoriaId, int page = 1, int pageSize = 10)
         {
             if (page < 1) page = 1;
             if (pageSize < 5) pageSize = 5;
@@ -92,7 +92,8 @@ namespace Pedidos360.Controllers
         }
 
 
-        [HttpPost]
+		// Recibe los datos del formulario para crear un producto
+		[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Nombre,Precio,ImpuestoPorc,Stock,Activo,CategoriaId")] Producto producto, IFormFile? imagenFile)
         {
@@ -152,7 +153,9 @@ namespace Pedidos360.Controllers
             return View(producto);
         }
 
-        [HttpPost]
+
+		// Actualiza un producto existente
+		[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("ProductoId,Nombre,Precio,ImpuestoPorc,Stock,Activo,CategoriaId")] Producto producto, IFormFile? imagenFile)
         {
