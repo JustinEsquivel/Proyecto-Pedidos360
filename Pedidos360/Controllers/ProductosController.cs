@@ -131,7 +131,7 @@ namespace Pedidos360.Controllers
                     });
                 }
 
-                TempData["Ok"] = "Cliente creado correctamente.";
+                TempData["Ok"] = "Producto creado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
             catch (DbUpdateException)

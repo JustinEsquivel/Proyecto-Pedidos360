@@ -19,7 +19,6 @@
 <form id="formPedido" asp-action="Create" method="post">
     @Html.AntiForgeryToken()
 
-    @* ── Cliente ── *@
     <div class="card mb-4">
         <div class="card-header fw-bold">1. Seleccionar Cliente</div>
         <div class="card-body">
@@ -36,7 +35,6 @@
         </div>
     </div>
 
-    @* ── Búsqueda de Productos (AJAX Autosuggest) ── *@
     <div class="card mb-4">
         <div class="card-header fw-bold">2. Agregar Productos</div>
         <div class="card-body">
@@ -73,7 +71,6 @@
         </div>
     </div>
 
-    @* ── Tabla de líneas del pedido ── *@
     <div class="card mb-4">
         <div class="card-header fw-bold">3. Líneas del Pedido</div>
         <div class="card-body p-0">
@@ -102,7 +99,6 @@
         </div>
     </div>
 
-    @* ── Totales en tiempo real ── *@
     <div class="row justify-content-end mb-4">
         <div class="col-md-4">
             <div class="card">
@@ -129,7 +125,6 @@
         </div>
     </div>
 
-    @* Campo oculto que lleva el JSON de las líneas al servidor *@
     <input type="hidden" id="lineasJson" name="lineasJson" value="[]" />
 
     <div class="d-flex gap-2 justify-content-end">
@@ -148,7 +143,6 @@
     let lineas = [];
     let productoSeleccionado = null; // producto actualmente resaltado en autosuggest
 
-    // ── Elementos del DOM 
     const inputBusqueda  = document.getElementById('busquedaProducto');
     const divSugerencias = document.getElementById('sugerencias');
     const inputCantidad  = document.getElementById('inputCantidad');
@@ -164,7 +158,6 @@
     const btnConfirmar   = document.getElementById('btnConfirmar');
     const msgProducto    = document.getElementById('msgProducto');
 
-    //  Token CSRF para las llamadas POST 
     const csrfToken = document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
 
     let debounceTimer;
@@ -247,7 +240,6 @@
         inputCantidad.focus();
     }
 
-    // Cerrar sugerencias al hacer clic fuera
     document.addEventListener('click', function (e) {
         if (!divSugerencias.contains(e.target) && e.target !== inputBusqueda) {
             ocultarSugerencias();
@@ -269,7 +261,6 @@
             return;
         }
 
-        // Verificar que no supere el stock disponible
         const yaEnPedido = lineas
             .filter(l => l.productoId === productoSeleccionado.id)
             .reduce((sum, l) => sum + l.cantidad, 0);
@@ -279,7 +270,6 @@
             return;
         }
 
-        // Buscar si ya existe el mismo producto con mismo descuento para agrupar
         const existente = lineas.find(
             l => l.productoId === productoSeleccionado.id && l.descuento === descuento
         );
@@ -298,7 +288,6 @@
             });
         }
 
-        // Resetear controles
         inputBusqueda.value     = '';
         inputCantidad.value     = '1';
         inputDescuento.value    = '0';
@@ -311,7 +300,6 @@
     });
 
     function renderizarTabla() {
-        // Limpiar tbody excepto fila vacía
         Array.from(tbodyLineas.querySelectorAll('tr.linea-pedido')).forEach(r => r.remove());
         filaVacia.style.display = lineas.length === 0 ? '' : 'none';
 
@@ -348,7 +336,6 @@
             tbodyLineas.appendChild(tr);
         });
 
-        // Listeners en inputs inline
         tbodyLineas.querySelectorAll('input[data-field]').forEach(inp => {
             inp.addEventListener('change', function () {
                 const idx   = parseInt(this.dataset.idx, 10);
@@ -373,7 +360,6 @@
             });
         });
 
-        // Listeners en botones eliminar
         tbodyLineas.querySelectorAll('.btn-eliminar').forEach(btn => {
             btn.addEventListener('click', function () {
                 lineas.splice(parseInt(this.dataset.idx, 10), 1);
@@ -382,7 +368,6 @@
             });
         });
 
-        // Actualizar JSON oculto y botón confirmar
         hiddenLineas.value      = JSON.stringify(lineas.map(l => ({
             productoId: l.productoId,
             cantidad:   l.cantidad,
@@ -455,7 +440,6 @@
             return;
         }
 
-        // Actualizar JSON justo antes de enviar
         hiddenLineas.value = JSON.stringify(lineas.map(l => ({
             productoId: l.productoId,
             cantidad:   l.cantidad,
@@ -476,7 +460,6 @@
             .replace(/"/g, '&quot;');
     }
 
-    // Inicializar tabla vacía
     renderizarTabla();
 
 })();

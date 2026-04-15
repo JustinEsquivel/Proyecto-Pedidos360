@@ -21,8 +21,8 @@
     #carouselProductos { background: #0f172a; }
     .carousel-slide-img {
         width: 100%; height: 460px;
-        object-fit: cover; object-position: center;
-        filter: brightness(.65);
+        object-fit: contain; object-position: center;
+        filter: brightness(.9);
     }
     .carousel-slide-placeholder {
         width: 100%; height: 460px;
@@ -62,12 +62,14 @@
     }
     .product-img-wrap {
         height: 210px; overflow: hidden; position: relative;
+        background: #f4f5f7;
     }
     .product-img-wrap img {
-        width: 100%; height: 210px; object-fit: cover;
+        width: 100%; height: 210px; object-fit: contain;
         transition: transform .4s;
+        padding: .5rem;
     }
-    .product-card:hover .product-img-wrap img { transform: scale(1.06); }
+    .product-card:hover .product-img-wrap img { transform: scale(1.04); }
     .product-img-placeholder {
         height: 210px;
         display: flex; align-items: center; justify-content: center;
@@ -178,9 +180,14 @@
     </div>
     @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
     {
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalNuevaCategoria">
+                <i class="bi bi-tags me-1"></i>Nueva Categoría
+            </button>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i>Nuevo Producto
+            </a>
+        </div>
     }
 </div>
 
@@ -342,4 +349,131 @@ else
         </ul>
     </nav>
     <p class="text-center text-muted small">Página @Model.Page de @Model.TotalPages</p>
+}
+
+@* ─── MODAL NUEVA CATEGORÍA ─── *@
+@if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
+{
+    <div class="modal fade" id="modalNuevaCategoria" tabindex="-1" aria-labelledby="modalNuevaCategoriaLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalNuevaCategoriaLabel">
+                        <i class="bi bi-tags me-2"></i>Nueva Categoría
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="alertaCategoria" class="alert d-none mb-3"></div>
+                    <div class="mb-3">
+                        <label for="inputNombreCategoria" class="form-label fw-semibold">
+                            Nombre <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="inputNombreCategoria" class="form-control"
+                               placeholder="Ej: Electrónica, Ropa, Alimentos…"
+                               maxlength="100" />
+                        <div class="form-text">Máximo 100 caracteres.</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" id="btnGuardarCategoria" class="btn btn-primary">
+                        <span id="spinnerCategoria" class="spinner-border spinner-border-sm me-1 d-none"></span>
+                        Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+(function () {
+    const modal = document.getElementById('modalNuevaCategoria');
+    if (!modal) return; // solo para Admin/Ventas
+
+    // Mover el modal como hijo directo de <body> para evitar problemas
+    // de stacking context cuando está anidado dentro de contenedores.
+    document.body.appendChild(modal);
+
+    const inputNombre  = document.getElementById('inputNombreCategoria');
+    const btnGuardar   = document.getElementById('btnGuardarCategoria');
+    const spinner      = document.getElementById('spinnerCategoria');
+    const alerta       = document.getElementById('alertaCategoria');
+    const selectFiltro = document.querySelector('select[name="categoriaId"]');
+
+    modal.addEventListener('show.bs.modal', function () {
+        inputNombre.value = '';
+        mostrarAlerta('', '');
+    });
+
+    modal.addEventListener('shown.bs.modal', function () {
+        inputNombre.focus();
+    });
+
+    inputNombre.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); btnGuardar.click(); }
+    });
+
+    btnGuardar.addEventListener('click', async function () {
+        const nombre = inputNombre.value.trim();
+
+        if (!nombre) {
+            mostrarAlerta('El nombre de la categoría es requerido.', 'danger');
+            inputNombre.focus();
+            return;
+        }
+
+        setBusy(true);
+        mostrarAlerta('', '');
+
+        try {
+            const res = await fetch('/api/categorias', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                mostrarAlerta(data.error ?? 'Ocurrió un error al guardar.', 'danger');
+                return;
+            }
+
+            // Agregar la nueva categoría al select del filtro sin recargar
+            if (selectFiltro) {
+                const opt = document.createElement('option');
+                opt.value       = data.id;
+                opt.textContent = data.nombre;
+                selectFiltro.appendChild(opt);
+            }
+
+            mostrarAlerta(`Categoría "${data.nombre}" creada correctamente.`, 'success');
+            inputNombre.value = '';
+
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(modal)?.hide();
+            }, 1200);
+
+        } catch {
+            mostrarAlerta('No se pudo conectar con el servidor.', 'danger');
+        } finally {
+            setBusy(false);
+        }
+    });
+
+    function mostrarAlerta(mensaje, tipo) {
+        if (!mensaje) { alerta.className = 'alert d-none'; return; }
+        alerta.className = `alert alert-${tipo}`;
+        alerta.textContent = mensaje;
+    }
+
+    function setBusy(busy) {
+        btnGuardar.disabled = busy;
+        spinner.classList.toggle('d-none', !busy);
+    }
+})();
+</script>
 }

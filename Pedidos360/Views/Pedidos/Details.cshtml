@@ -3,137 +3,163 @@
     ViewData["Title"] = $"Pedido #{Model.PedidoId}";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Pedido #@Model.PedidoId</h2>
-    <div class="d-flex gap-2">
-        @if (Model.Estado == "Pendiente" && (User.IsInRole("Admin") || User.IsInRole("Ventas")))
-        {
-            <a asp-action="Edit" asp-route-id="@Model.PedidoId" class="btn btn-warning">
-                <i class="bi bi-pencil"></i> Editar Pedido
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h1 class="page-title">Pedido <span class="text-muted fw-normal">#@Model.PedidoId</span></h1>
+            <p class="page-subtitle">
+                @Model.Fecha.ToString("dddd, dd 'de' MMMM 'de' yyyy  HH:mm", new System.Globalization.CultureInfo("es-CR"))
+                &nbsp;·&nbsp;
+                <span class="estado-badge badge-@Model.Estado.ToLower()">@Model.Estado</span>
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            @if (Model.Estado == "Pendiente" && (User.IsInRole("Admin") || User.IsInRole("Ventas")))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.PedidoId" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-pencil me-1"></i>Editar
+                </a>
+                <form asp-action="CambiarEstado" asp-route-id="@Model.PedidoId" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-check2-circle me-1"></i>Confirmar
+                    </button>
+                </form>
+            }
+            @if (Model.Estado == "Confirmado" && User.IsInRole("Admin"))
+            {
+                <form asp-action="CambiarEstado" asp-route-id="@Model.PedidoId" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-success">
+                        <i class="bi bi-receipt-cutoff me-1"></i>Facturar
+                    </button>
+                </form>
+            }
+            <a asp-action="ExportarPdf" asp-route-id="@Model.PedidoId"
+               class="btn btn-sm btn-export-pdf" target="_blank" title="Descargar factura en PDF">
+                <i class="bi bi-file-earmark-pdf me-1"></i>PDF
             </a>
-            <form asp-action="CambiarEstado" asp-route-id="@Model.PedidoId" method="post">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-primary">Confirmar Pedido</button>
-            </form>
-        }
-        @if (Model.Estado == "Confirmado" && User.IsInRole("Admin"))
-        {
-            <form asp-action="CambiarEstado" asp-route-id="@Model.PedidoId" method="post">
-                @Html.AntiForgeryToken()
-                <button type="submit" class="btn btn-success">Facturar Pedido</button>
-            </form>
-        }
-        <a asp-action="Index" class="btn btn-outline-secondary">Volver</a>
+            <a asp-action="Index" class="btn btn-sm btn-ghost">
+                <i class="bi bi-arrow-left me-1"></i>Volver
+            </a>
+        </div>
     </div>
 </div>
 
 @if (TempData["Ok"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Ok"]
+    <div class="alert alert-success alert-dismissible fade show alert-modern">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Ok"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 @if (TempData["Err"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show">
-        @TempData["Err"]
+    <div class="alert alert-danger alert-dismissible fade show alert-modern">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Err"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<div class="row mb-4">
+<div class="row g-3 mb-4">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header fw-bold">Información del Pedido</div>
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Fecha</dt>
-                    <dd class="col-sm-8">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</dd>
-
-                    <dt class="col-sm-4">Estado</dt>
-                    <dd class="col-sm-8">
-                        <span class="badge @(Model.Estado == "Facturado" ? "bg-success" : Model.Estado == "Confirmado" ? "bg-primary" : "bg-warning text-dark")">
-                            @Model.Estado
-                        </span>
-                    </dd>
-
-                    <dt class="col-sm-4">Vendedor</dt>
-                    <dd class="col-sm-8">@Model.Usuario?.NombreCompleto</dd>
-                </dl>
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="bi bi-receipt me-2"></i>Información del Pedido
+            </div>
+            <div class="info-card-body">
+                <div class="info-row">
+                    <span class="info-label">Fecha</span>
+                    <span class="info-value">@Model.Fecha.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Estado</span>
+                    <span class="info-value">
+                        <span class="estado-badge badge-@Model.Estado.ToLower()">@Model.Estado</span>
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Vendedor</span>
+                    <span class="info-value">@Model.Usuario?.NombreCompleto</span>
+                </div>
             </div>
         </div>
     </div>
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header fw-bold">Cliente</div>
-            <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-sm-4">Nombre</dt>
-                    <dd class="col-sm-8">@Model.Cliente?.Nombre</dd>
-
-                    <dt class="col-sm-4">Cédula</dt>
-                    <dd class="col-sm-8">@Model.Cliente?.Cedula</dd>
-
-                    <dt class="col-sm-4">Correo</dt>
-                    <dd class="col-sm-8">@Model.Cliente?.Correo</dd>
-
-                    <dt class="col-sm-4">Teléfono</dt>
-                    <dd class="col-sm-8">@Model.Cliente?.Telefono</dd>
-                </dl>
+        <div class="info-card">
+            <div class="info-card-header">
+                <i class="bi bi-person-lines-fill me-2"></i>Cliente
+            </div>
+            <div class="info-card-body">
+                <div class="info-row">
+                    <span class="info-label">Nombre</span>
+                    <span class="info-value fw-semibold">@Model.Cliente?.Nombre</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Cédula</span>
+                    <span class="info-value">@Model.Cliente?.Cedula</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Correo</span>
+                    <span class="info-value">@Model.Cliente?.Correo</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Teléfono</span>
+                    <span class="info-value">@Model.Cliente?.Telefono</span>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header fw-bold">Detalle de Productos</div>
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-striped mb-0">
-                <thead class="table-secondary">
+<div class="table-card mb-4">
+    <div class="table-card-header">
+        <i class="bi bi-box-seam me-2"></i>Detalle de Productos
+    </div>
+    <div class="table-responsive">
+        <table class="table-modern w-100">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th class="text-end">Precio Unit.</th>
+                    <th class="text-center">Cantidad</th>
+                    <th class="text-end">Desc. %</th>
+                    <th class="text-end">Impuesto %</th>
+                    <th class="text-end">Total Línea</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Detalles)
+                {
                     <tr>
-                        <th>Producto</th>
-                        <th class="text-end">Precio Unit.</th>
-                        <th class="text-center">Cantidad</th>
-                        <th class="text-end">Desc. %</th>
-                        <th class="text-end">Impuesto %</th>
-                        <th class="text-end">Total Línea</th>
+                        <td class="fw-medium">@d.Producto?.Nombre</td>
+                        <td class="text-end text-muted">₡@d.PrecioUnit.ToString("N2")</td>
+                        <td class="text-center">@d.Cantidad</td>
+                        <td class="text-end text-muted">@d.Descuento.ToString("N2")%</td>
+                        <td class="text-end text-muted">@d.ImpuestoPorc.ToString("N2")%</td>
+                        <td class="text-end fw-semibold">₡@d.TotalLinea.ToString("N2")</td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var d in Model.Detalles)
-                    {
-                        <tr>
-                            <td>@d.Producto?.Nombre</td>
-                            <td class="text-end">₡@d.PrecioUnit.ToString("N2")</td>
-                            <td class="text-center">@d.Cantidad</td>
-                            <td class="text-end">@d.Descuento.ToString("N2")%</td>
-                            <td class="text-end">@d.ImpuestoPorc.ToString("N2")%</td>
-                            <td class="text-end fw-semibold">₡@d.TotalLinea.ToString("N2")</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
-<div class="row justify-content-end">
-    <div class="col-md-4">
-        <table class="table table-bordered">
-            <tr>
-                <th>Subtotal</th>
-                <td class="text-end">₡@Model.Subtotal.ToString("N2")</td>
-            </tr>
-            <tr>
-                <th>Impuestos</th>
-                <td class="text-end">₡@Model.Impuestos.ToString("N2")</td>
-            </tr>
-            <tr class="table-dark">
-                <th>TOTAL</th>
-                <td class="text-end fw-bold fs-5">₡@Model.Total.ToString("N2")</td>
-            </tr>
-        </table>
+<div class="row justify-content-end mb-2">
+    <div class="col-md-4 col-sm-6">
+        <div class="totals-card">
+            <div class="totals-row">
+                <span>Subtotal</span>
+                <span>₡@Model.Subtotal.ToString("N2")</span>
+            </div>
+            <div class="totals-row">
+                <span>Impuestos</span>
+                <span>₡@Model.Impuestos.ToString("N2")</span>
+            </div>
+            <div class="totals-row totals-total">
+                <span>TOTAL</span>
+                <span>₡@Model.Total.ToString("N2")</span>
+            </div>
+        </div>
     </div>
 </div>

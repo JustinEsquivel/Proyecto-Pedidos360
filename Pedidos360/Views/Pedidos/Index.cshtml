@@ -1,104 +1,209 @@
-@model List<Pedidos360.Models.Pedido>
+@model Pedidos360.Models.ViewModels.PedidosIndexVM
 @{
     ViewData["Title"] = "Pedidos";
-    int page     = ViewBag.Page;
-    int pageSize = ViewBag.PageSize;
-    int total    = ViewBag.Total;
-    int pages    = (int)Math.Ceiling((double)total / pageSize);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h2>Pedidos</h2>
-    @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
-    {
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="bi bi-plus-circle"></i> Nuevo Pedido
-        </a>
-    }
+@* ── PAGE HEADER ── *@
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h1 class="page-title">Pedidos</h1>
+            <p class="page-subtitle">
+                @Model.Total pedido(s) encontrado(s)
+                @if (!string.IsNullOrWhiteSpace(Model.Estado) || Model.FechaDesde.HasValue || Model.FechaHasta.HasValue
+                    || !string.IsNullOrWhiteSpace(Model.ClienteNombre) || !string.IsNullOrWhiteSpace(Model.VendedorNombre))
+                {
+                    <span class="ms-2 badge-filter">con filtros activos</span>
+                }
+            </p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
+            {
+                <a asp-action="Create" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-lg me-1"></i>Nuevo Pedido
+                </a>
+            }
+            <a asp-action="ExportarExcel"
+               asp-route-estado="@Model.Estado"
+               asp-route-fechaDesde="@Model.FechaDesde?.ToString("yyyy-MM-dd")"
+               asp-route-fechaHasta="@Model.FechaHasta?.ToString("yyyy-MM-dd")"
+               asp-route-clienteNombre="@Model.ClienteNombre"
+               asp-route-vendedorNombre="@Model.VendedorNombre"
+               class="btn btn-sm btn-export-excel" title="Exportar a Excel">
+                <i class="bi bi-file-earmark-excel me-1"></i>Excel
+            </a>
+        </div>
+    </div>
 </div>
 
+@* ── ALERTAS ── *@
 @if (TempData["Ok"] != null)
 {
-    <div class="alert alert-success alert-dismissible fade show">
-        @TempData["Ok"]
+    <div class="alert alert-success alert-dismissible fade show alert-modern">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Ok"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 @if (TempData["Err"] != null)
 {
-    <div class="alert alert-danger alert-dismissible fade show">
-        @TempData["Err"]
+    <div class="alert alert-danger alert-dismissible fade show alert-modern">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Err"]
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 }
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-dark">
-            <tr>
-                <th>#</th>
-                <th>Fecha</th>
-                <th>Cliente</th>
-                <th>Vendedor</th>
-                <th>Estado</th>
-                <th class="text-end">Subtotal</th>
-                <th class="text-end">Impuestos</th>
-                <th class="text-end">Total</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (!Model.Any())
-            {
-                <tr>
-                    <td colspan="9" class="text-center text-muted py-4">No hay pedidos registrados.</td>
-                </tr>
-            }
-            @foreach (var p in Model)
-            {
-                <tr>
-                    <td>@p.PedidoId</td>
-                    <td>@p.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>@p.Cliente?.Nombre</td>
-                    <td>@p.Usuario?.NombreCompleto</td>
-                    <td>
-                        <span class="badge @(p.Estado == "Facturado" ? "bg-success" : p.Estado == "Confirmado" ? "bg-primary" : "bg-warning text-dark")">
-                            @p.Estado
-                        </span>
-                    </td>
-                    <td class="text-end">₡@p.Subtotal.ToString("N2")</td>
-                    <td class="text-end">₡@p.Impuestos.ToString("N2")</td>
-                    <td class="text-end fw-bold">₡@p.Total.ToString("N2")</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@p.PedidoId" class="btn btn-sm btn-outline-secondary">
-                            Ver detalle
-                        </a>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
+@* ── FILTROS AVANZADOS ── *@
+<div class="filter-section mb-4">
+    <div class="filter-section-header mb-3">
+        <i class="bi bi-funnel-fill me-2 text-muted"></i>
+        <span class="filter-section-title">Filtros avanzados</span>
+    </div>
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-xl-2 col-md-3 col-sm-6">
+            <label class="filter-label">Estado</label>
+            <select name="estado" class="form-select form-select-sm">
+                <option value="">Todos</option>
+                <option value="Pendiente"  selected="@(Model.Estado == "Pendiente")">Pendiente</option>
+                <option value="Confirmado" selected="@(Model.Estado == "Confirmado")">Confirmado</option>
+                <option value="Facturado"  selected="@(Model.Estado == "Facturado")">Facturado</option>
+            </select>
+        </div>
+        <div class="col-xl-2 col-md-3 col-sm-6">
+            <label class="filter-label">Fecha desde</label>
+            <input type="date" name="fechaDesde" class="form-control form-control-sm"
+                   value="@Model.FechaDesde?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-xl-2 col-md-3 col-sm-6">
+            <label class="filter-label">Fecha hasta</label>
+            <input type="date" name="fechaHasta" class="form-control form-control-sm"
+                   value="@Model.FechaHasta?.ToString("yyyy-MM-dd")" />
+        </div>
+        <div class="col-xl-2 col-md-3 col-sm-6">
+            <label class="filter-label">Cliente</label>
+            <input name="clienteNombre" value="@Model.ClienteNombre"
+                   class="form-control form-control-sm" placeholder="Nombre del cliente…" />
+        </div>
+        <div class="col-xl-2 col-md-3 col-sm-6">
+            <label class="filter-label">Vendedor</label>
+            <input name="vendedorNombre" value="@Model.VendedorNombre"
+                   class="form-control form-control-sm" placeholder="Nombre del vendedor…" />
+        </div>
+        <div class="col-xl-1 col-md-2 col-sm-3">
+            <label class="filter-label">Por página</label>
+            <select name="pageSize" class="form-select form-select-sm">
+                @foreach (var s in new[] { 5, 10, 20, 30, 50 })
+                {
+                    <option value="@s" selected="@(Model.PageSize == s)">@s</option>
+                }
+            </select>
+        </div>
+        <div class="col-xl-1 col-md-1 col-sm-3 d-flex gap-1">
+            <button class="btn btn-primary btn-sm flex-grow-1" type="submit" title="Aplicar filtros">
+                <i class="bi bi-search"></i>
+            </button>
+            <a class="btn btn-sm btn-outline-secondary" asp-action="Index" title="Limpiar filtros">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        </div>
+    </form>
 </div>
 
-@* Paginación *@
-@if (pages > 1)
+@* ── TABLA ── *@
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table-modern w-100">
+            <thead>
+                <tr>
+                    <th style="width:60px">#</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Vendedor</th>
+                    <th style="width:110px">Estado</th>
+                    <th class="text-end">Subtotal</th>
+                    <th class="text-end">Impuestos</th>
+                    <th class="text-end">Total</th>
+                    <th style="width:100px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox display-6 opacity-25 d-block mb-2"></i>
+                            No se encontraron pedidos con los filtros aplicados.
+                        </td>
+                    </tr>
+                }
+                @foreach (var p in Model.Items)
+                {
+                    <tr>
+                        <td class="fw-semibold text-muted">#@p.PedidoId</td>
+                        <td class="text-muted small">@p.Fecha.ToString("dd/MM/yyyy")<br/><span style="font-size:.75rem">@p.Fecha.ToString("HH:mm")</span></td>
+                        <td class="fw-medium">@p.Cliente?.Nombre</td>
+                        <td class="text-muted">@p.Usuario?.NombreCompleto</td>
+                        <td>
+                            <span class="estado-badge badge-@p.Estado.ToLower()">
+                                @p.Estado
+                            </span>
+                        </td>
+                        <td class="text-end text-muted small">₡@p.Subtotal.ToString("N2")</td>
+                        <td class="text-end text-muted small">₡@p.Impuestos.ToString("N2")</td>
+                        <td class="text-end fw-semibold">₡@p.Total.ToString("N2")</td>
+                        <td class="text-end">
+                            <a asp-action="Details" asp-route-id="@p.PedidoId"
+                               class="btn btn-sm btn-ghost">
+                                <i class="bi bi-eye me-1"></i>Ver
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* ── PAGINACIÓN ── *@
+@if (Model.TotalPages > 1)
 {
-    <nav>
-        <ul class="pagination justify-content-center">
-            <li class="page-item @(page <= 1 ? "disabled" : "")">
-                <a class="page-link" asp-action="Index" asp-route-page="@(page - 1)">Anterior</a>
-            </li>
-            @for (int i = 1; i <= pages; i++)
-            {
-                <li class="page-item @(i == page ? "active" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
-                </li>
-            }
-            <li class="page-item @(page >= pages ? "disabled" : "")">
-                <a class="page-link" asp-action="Index" asp-route-page="@(page + 1)">Siguiente</a>
-            </li>
-        </ul>
-    </nav>
+    <div class="pagination-modern mt-3">
+        @{
+            // Helper para generar los asp-route con todos los filtros
+            string EstadoVal = Model.Estado ?? "";
+            string FDesde = Model.FechaDesde?.ToString("yyyy-MM-dd") ?? "";
+            string FHasta = Model.FechaHasta?.ToString("yyyy-MM-dd") ?? "";
+            string CliNom = Model.ClienteNombre ?? "";
+            string VenNom = Model.VendedorNombre ?? "";
+        }
+        <a class="page-btn @(Model.HasPrev ? "" : "disabled")"
+           asp-action="Index" asp-route-page="@(Model.Page - 1)"
+           asp-route-pageSize="@Model.PageSize" asp-route-estado="@EstadoVal"
+           asp-route-fechaDesde="@FDesde" asp-route-fechaHasta="@FHasta"
+           asp-route-clienteNombre="@CliNom" asp-route-vendedorNombre="@VenNom">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <a class="page-btn @(i == Model.Page ? "active" : "")"
+               asp-action="Index" asp-route-page="@i"
+               asp-route-pageSize="@Model.PageSize" asp-route-estado="@EstadoVal"
+               asp-route-fechaDesde="@FDesde" asp-route-fechaHasta="@FHasta"
+               asp-route-clienteNombre="@CliNom" asp-route-vendedorNombre="@VenNom">@i</a>
+        }
+
+        <a class="page-btn @(Model.HasNext ? "" : "disabled")"
+           asp-action="Index" asp-route-page="@(Model.Page + 1)"
+           asp-route-pageSize="@Model.PageSize" asp-route-estado="@EstadoVal"
+           asp-route-fechaDesde="@FDesde" asp-route-fechaHasta="@FHasta"
+           asp-route-clienteNombre="@CliNom" asp-route-vendedorNombre="@VenNom">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
 }
 
-<p class="text-muted text-center small">Mostrando @Model.Count de @total pedidos</p>
+<p class="text-muted text-center small mt-2">
+    Mostrando @Model.Items.Count de @Model.Total pedidos
+    &nbsp;·&nbsp; Página @Model.Page de @Model.TotalPages
+</p>

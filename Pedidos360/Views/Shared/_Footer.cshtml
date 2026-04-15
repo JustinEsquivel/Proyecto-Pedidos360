@@ -1,5 +1,14 @@
-﻿<footer class="border-top footer text-muted">
-    <div class="container">
-        &copy; 2026 - Pedidos360 - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <span class="brand-icon brand-icon-sm"><i class="bi bi-lightning-charge-fill"></i></span>
+            <span class="fw-semibold">Pedidos360</span>
+        </div>
+        <p class="footer-copy">
+            &copy; @DateTime.Now.Year Pedidos360 — Sistema de Gestión de Pedidos
+        </p>
+        <div class="footer-links">
+            <a asp-area="" asp-controller="Home" asp-action="Privacy" class="footer-link">Privacidad</a>
+        </div>
     </div>
 </footer>

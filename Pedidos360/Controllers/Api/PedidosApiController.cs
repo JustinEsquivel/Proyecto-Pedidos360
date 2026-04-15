@@ -5,7 +5,6 @@ using Pedidos360.Data;
 
 namespace Pedidos360.Controllers.Api
 {
-    /// Solo accesible por usuarios autenticados.
     [Route("api/pedidos")]
     [ApiController]
     [Authorize]

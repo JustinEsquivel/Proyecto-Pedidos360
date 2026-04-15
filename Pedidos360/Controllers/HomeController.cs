@@ -30,8 +30,7 @@ namespace Pedidos360.Controllers
                 PedidosConfirmados = await _context.Pedidos.CountAsync(p => p.Estado == "Confirmado"),
                 PedidosFacturados  = await _context.Pedidos.CountAsync(p => p.Estado == "Facturado"),
                 TotalFacturado     = await _context.Pedidos
-                                        .Where(p => p.Estado == "Facturado")
-                                        .SumAsync(p => (decimal?)p.Total) ?? 0m,
+                                        .SumAsync(p => (decimal?)(p.Subtotal + p.Impuestos)) ?? 0m,
                 TotalClientes      = await _context.Clientes.CountAsync(),
                 TotalProductos     = await _context.Productos.CountAsync(p => p.Activo),
                 ProductosBajoStock = await _context.Productos.CountAsync(p => p.Activo && p.Stock <= 5),

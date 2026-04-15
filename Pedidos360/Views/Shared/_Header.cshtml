@@ -1,62 +1,88 @@
-﻿<header>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-        <div class="container-fluid">
-            <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Pedidos360</a>
+<header class="site-header">
+    <nav class="navbar navbar-expand-lg navbar-dark py-0 h-100" style="background:transparent">
+        <div class="nav-inner">
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse"
-                    aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            @* ── Logo ── *@
+            <a class="navbar-brand d-flex align-items-center gap-2" asp-area="" asp-controller="Home" asp-action="Index">
+                <span class="brand-icon">
+                    <i class="bi bi-lightning-charge-fill"></i>
+                </span>
+                <span class="brand-name">Pedidos<span class="brand-accent">360</span></span>
+            </a>
+
+            @* ── Toggler móvil ── *@
+            <button class="navbar-toggler border-0 ms-auto me-0" type="button"
+                    data-bs-toggle="collapse" data-bs-target="#navMain"
+                    aria-controls="navMain" aria-expanded="false" aria-label="Menú">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
+            @* ── Links de navegación ── *@
+            <div class="collapse navbar-collapse" id="navMain">
+                <ul class="navbar-nav me-auto nav-links">
 
                     <li class="nav-item">
-                        <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
+                        <a class="nav-link-p" asp-area="" asp-controller="Home" asp-action="Index">
+                            <i class="bi bi-house-door"></i>
+                            <span>Inicio</span>
+                        </a>
                     </li>
 
                     @if (User.Identity?.IsAuthenticated == true)
                     {
-                        @* Gestión de usuarios: solo Admin *@
                         @if (User.IsInRole("Admin"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Usuarios" asp-action="Index">Usuarios</a>
+                                <a class="nav-link-p" asp-controller="Usuarios" asp-action="Index">
+                                    <i class="bi bi-shield-lock"></i>
+                                    <span>Usuarios</span>
+                                </a>
                             </li>
                         }
 
-                        @* Clientes: Admin y Ventas *@
                         @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Clientes" asp-action="Index">Clientes</a>
+                                <a class="nav-link-p" asp-controller="Clientes" asp-action="Index">
+                                    <i class="bi bi-people"></i>
+                                    <span>Clientes</span>
+                                </a>
                             </li>
                         }
 
-                        @* Catálogo de productos: Admin y Ventas ven "Productos", Operaciones ve "Inventario" *@
                         @if (User.IsInRole("Admin") || User.IsInRole("Ventas"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Productos</a>
+                                <a class="nav-link-p" asp-controller="Productos" asp-action="Index">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span>Productos</span>
+                                </a>
                             </li>
                         }
                         else if (User.IsInRole("Operaciones"))
                         {
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Productos" asp-action="Index">Inventario</a>
+                                <a class="nav-link-p" asp-controller="Productos" asp-action="Index">
+                                    <i class="bi bi-boxes"></i>
+                                    <span>Inventario</span>
+                                </a>
                             </li>
                         }
 
-                        @* Pedidos: todos los roles *@
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-controller="Pedidos" asp-action="Index">Pedidos</a>
+                            <a class="nav-link-p" asp-controller="Pedidos" asp-action="Index">
+                                <i class="bi bi-receipt"></i>
+                                <span>Pedidos</span>
+                            </a>
                         </li>
                     }
-
                 </ul>
 
-                <partial name="_LoginPartial" />
+                <div class="nav-auth">
+                    <partial name="_LoginPartial" />
+                </div>
             </div>
+
         </div>
     </nav>
 </header>

@@ -38,7 +38,6 @@
         </div>
     </div>
 
-    @* ── Búsqueda de Productos (AJAX Autosuggest) ── *@
     <div class="card mb-4">
         <div class="card-header fw-bold">2. Agregar Productos</div>
         <div class="card-body">
@@ -75,7 +74,6 @@
         </div>
     </div>
 
-    @* ── Tabla de líneas del pedido ── *@
     <div class="card mb-4">
         <div class="card-header fw-bold">3. Líneas del Pedido</div>
         <div class="card-body p-0">
@@ -104,7 +102,6 @@
         </div>
     </div>
 
-    @* ── Totales en tiempo real ── *@
     <div class="row justify-content-end mb-4">
         <div class="col-md-4">
             <div class="card">
@@ -144,7 +141,6 @@
 @section Scripts {
 <script>
 (function () {
-    // Líneas precargadas desde el servidor
     const lineasIniciales = @Html.Raw(ViewBag.LineasIniciales ?? "[]");
 
     /** @@type {Array<{productoId,nombre,precio,impuesto,stock,cantidad,descuento}>} */

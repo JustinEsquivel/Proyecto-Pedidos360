@@ -1,112 +1,148 @@
-﻿@model Pedidos360.Models.ViewModels.UsuariosIndexVM
+@model Pedidos360.Models.ViewModels.UsuariosIndexVM
 @{
     ViewData["Title"] = "Usuarios";
     var roles = ViewBag.Roles as List<string> ?? new();
 }
 
-<h2>Usuarios</h2>
+@* ── PAGE HEADER ── *@
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+        <div>
+            <h1 class="page-title">Usuarios</h1>
+            <p class="page-subtitle">Gestión de acceso y roles del sistema</p>
+        </div>
+        <a class="btn btn-primary btn-sm"
+           asp-area="Identity" asp-page="/Account/Register">
+            <i class="bi bi-person-plus me-1"></i>Nuevo Usuario
+        </a>
+    </div>
+</div>
 
+@* ── ALERTAS ── *@
 @if (TempData["Ok"] != null)
 {
-    <div class="alert alert-success">@TempData["Ok"]</div>
+    <div class="alert alert-success alert-dismissible fade show alert-modern">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Ok"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
 @if (TempData["Err"] != null)
 {
-    <div class="alert alert-danger">@TempData["Err"]</div>
+    <div class="alert alert-danger alert-dismissible fade show alert-modern">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Err"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
 }
 
-<form method="get" class="row g-2 mb-3">
-    <div class="col-md-5">
-        <label class="form-label">Buscar (username, correo o nombre)</label>
-        <input name="texto" value="@Model.Texto" class="form-control" />
+@* ── FILTROS ── *@
+<div class="filter-section mb-4">
+    <div class="filter-section-header mb-3">
+        <i class="bi bi-funnel-fill me-2 text-muted"></i>
+        <span class="filter-section-title">Buscar</span>
     </div>
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-md-5">
+            <label class="filter-label">Nombre, username o correo</label>
+            <input name="texto" value="@Model.Texto" class="form-control form-control-sm" placeholder="Buscar…" />
+        </div>
+        <div class="col-md-3">
+            <label class="filter-label">Rol</label>
+            <select name="rol" class="form-select form-select-sm">
+                <option value="">Todos los roles</option>
+                @foreach (var r in roles)
+                {
+                    <option value="@r" selected="@(Model.Rol == r)">@r</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="filter-label">Por página</label>
+            <select name="pageSize" class="form-select form-select-sm">
+                @foreach (var s in new[] { 10, 15, 20, 30, 50 })
+                {
+                    <option value="@s" selected="@(Model.PageSize == s)">@s</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2 d-flex gap-2">
+            <button class="btn btn-primary btn-sm flex-grow-1" type="submit">
+                <i class="bi bi-search me-1"></i>Filtrar
+            </button>
+            <a class="btn btn-sm btn-ghost" asp-action="Index" title="Limpiar">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        </div>
+    </form>
+</div>
 
-    <div class="col-md-3">
-        <label class="form-label">Rol</label>
-        <select name="rol" class="form-select">
-            <option value="">-- Todos --</option>
-            @foreach (var r in roles)
-            {
-                <option value="@r" selected="@(Model.Rol == r)">@r</option>
-            }
-        </select>
+@* ── TABLA ── *@
+<div class="table-card">
+    <div class="table-responsive">
+        <table class="table-modern w-100">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Correo</th>
+                    <th>Nombre</th>
+                    <th style="width:210px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-shield-lock display-6 opacity-25 d-block mb-2"></i>
+                            No se encontraron usuarios.
+                        </td>
+                    </tr>
+                }
+                @foreach (var u in Model.Items)
+                {
+                    <tr>
+                        <td class="fw-medium">@u.UserName</td>
+                        <td class="text-muted">@u.Email</td>
+                        <td>@u.NombreCompleto</td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-ghost" asp-action="Details" asp-route-id="@u.Id">
+                                <i class="bi bi-eye me-1"></i>Detalle
+                            </a>
+                            <a class="btn btn-sm btn-outline-warning ms-1" asp-action="Edit" asp-route-id="@u.Id">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a class="btn btn-sm btn-outline-danger ms-1" asp-action="Delete" asp-route-id="@u.Id">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <div class="col-md-2">
-        <label class="form-label">Tamaño página</label>
-        <select name="pageSize" class="form-select">
-            @foreach (var s in new[] { 10, 15, 20, 30, 50 })
-            {
-                <option value="@s" selected="@(Model.PageSize == s)">@s</option>
-            }
-        </select>
-    </div>
-
-    <div class="col-md-2 d-flex align-items-end gap-2">
-        <button class="btn btn-primary" type="submit">Filtrar</button>
-        <a class="btn btn-secondary" asp-action="Index">Limpiar</a>
-         <a class="btn btn-success"
-           asp-area="Identity"
-           asp-page="/Account/Register">Crear</a>
-    </div>
-</form>
-
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Username</th>
-            <th>Correo</th>
-            <th>Nombre</th>
-            <th style="width:230px;"></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var u in Model.Items)
-        {
-            <tr>
-                <td>@u.UserName</td>
-                <td>@u.Email</td>
-                <td>@u.NombreCompleto</td>
-                <td class="text-end">
-                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@u.Id">Detalle</a>
-                    <a class="btn btn-sm btn-outline-warning" asp-action="Edit" asp-route-id="@u.Id">Editar</a>
-                    <a class="btn btn-sm btn-outline-danger" asp-action="Delete" asp-route-id="@u.Id">Eliminar</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
+@* ── PAGINACIÓN ── *@
 @if (Model.TotalPages > 1)
 {
-    <nav>
-        <ul class="pagination">
-            <li class="page-item @(Model.HasPrev ? "" : "disabled")">
-                <a class="page-link"
-                   asp-route-texto="@Model.Texto"
-                   asp-route-rol="@Model.Rol"
-                   asp-route-pageSize="@Model.PageSize"
-                   asp-route-page="@(Model.Page - 1)">Anterior</a>
-            </li>
+    <div class="pagination-modern mt-3">
+        <a class="page-btn @(Model.HasPrev ? "" : "disabled")"
+           asp-route-texto="@Model.Texto" asp-route-rol="@Model.Rol"
+           asp-route-pageSize="@Model.PageSize" asp-route-page="@(Model.Page - 1)">
+            <i class="bi bi-chevron-left"></i>
+        </a>
 
-            @for (int p = 1; p <= Model.TotalPages; p++)
-            {
-                <li class="page-item @(p == Model.Page ? "active" : "")">
-                    <a class="page-link"
-                       asp-route-texto="@Model.Texto"
-                       asp-route-rol="@Model.Rol"
-                       asp-route-pageSize="@Model.PageSize"
-                       asp-route-page="@p">@p</a>
-                </li>
-            }
+        @for (int p = 1; p <= Model.TotalPages; p++)
+        {
+            <a class="page-btn @(p == Model.Page ? "active" : "")"
+               asp-route-texto="@Model.Texto" asp-route-rol="@Model.Rol"
+               asp-route-pageSize="@Model.PageSize" asp-route-page="@p">@p</a>
+        }
 
-            <li class="page-item @(Model.HasNext ? "" : "disabled")">
-                <a class="page-link"
-                   asp-route-texto="@Model.Texto"
-                   asp-route-rol="@Model.Rol"
-                   asp-route-pageSize="@Model.PageSize"
-                   asp-route-page="@(Model.Page + 1)">Siguiente</a>
-            </li>
-        </ul>
-    </nav>
+        <a class="page-btn @(Model.HasNext ? "" : "disabled")"
+           asp-route-texto="@Model.Texto" asp-route-rol="@Model.Rol"
+           asp-route-pageSize="@Model.PageSize" asp-route-page="@(Model.Page + 1)">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+    <p class="text-muted text-center small">Página @Model.Page de @Model.TotalPages</p>
 }
